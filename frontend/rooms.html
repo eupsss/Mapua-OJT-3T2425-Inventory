@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rooms Monitor - Mapua Inventory</title>
+
+  <!-- Palette variables -->
+  <style>
+    :root {
+      --color-primary: #C8102E;         /* Mapúan Red */
+      --color-primary-dark: #A10B26;    /* Dark Red */
+      --color-accent: #FFC72C;          /* Gold Accent */
+      --color-text: #333333;            /* Charcoal */
+      --color-bg: #F5F5F5;              /* Light Gray */
+      --color-white: #FFFFFF;           /* White */
+    }
+  </style>
+
+  <!-- Link to global CSS -->
+  <link rel="stylesheet" href="rooms.css" />
+  <!-- Page-specific JS (for later) -->
+  <script defer src="rooms.js"></script>
+</head>
+<body>
+  <!-- Floating clock placeholder -->
+  <div id="floating-time" class="floating-time"></div>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="../icons/logo.png" alt="Logo" class="logo" />
+      <h1>Inventory</h1>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="index.html"><span class="icon">📊</span>Dashboard</a></li>
+        <li class="active"><a href="rooms.html"><span class="icon">🏠</span>Rooms</a></li>
+        <li><a href="reports.html"><span class="icon">📑</span>Reports</a></li>
+        <li><a href="settings.html"><span class="icon">⚙️</span>Settings</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Page Header -->
+    <header class="header">
+      <h2>Rooms Monitor</h2>
+      <div class="user-menu">
+        <span class="username">Admin</span>
+        <img src="avatar.png" alt="Your Avatar" class="avatar" />
+      </div>
+    </header>
+
+    <!-- Room Selector -->
+    <main>
+      <section class="room-selector">
+        <label for="room-select">Select Room:</label>
+        <select id="room-select">
+          <option value="">-- Choose a room --</option>
+          <!-- Rooms will be populated here -->
+        </select>
+      </section>
+
+      <!-- PC Grid -->
+      <section class="pc-grid">
+        <!-- Example PC card (to be generated via JS) -->
+        <!--
+        <div class="pc-card" data-pc="00" data-status="Working">
+          <img src="../icons/working.png" alt="Working" class="pc-icon" />
+          <span class="pc-number">00</span>
+        </div>
+        -->
+      </section>
+    </main>
+  </div>
+</body>
+</html>

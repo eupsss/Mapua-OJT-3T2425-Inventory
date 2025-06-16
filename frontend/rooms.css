@@ -1,0 +1,363 @@
+/* styles.css */
+
+/* Reset & base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --color-primary: #C8102E;         /* Mapúan Red */
+  --color-primary-dark: #A10B26;    /* Dark Red */
+  --color-accent: #FFC72C;          /* Gold Accent */
+  --color-text: #333333;            /* Charcoal */
+  --color-bg: #F5F5F5;              /* Light Gray */
+  --color-white: #FFFFFF;           /* White */
+}
+
+body {
+  display: flex;
+  font-family: Arial, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background-color: #1d181c;
+  color: var(--color-white);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Logo in sidebar brand */
+.sidebar .brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -1.6rem;
+}
+.sidebar .brand .logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  margin-right: 1.0rem;
+
+}
+
+
+.sidebar nav ul {
+  list-style: none;
+}
+
+.sidebar nav ul li a {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  color: var(--color-white);
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar nav ul li a:hover,
+.sidebar nav ul li.active a {
+  background-color: var(--color-primary-dark);
+}
+
+.sidebar nav ul li a .icon {
+  display: inline-flex;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: 0.75rem;
+}
+
+/* Main content area */
+.main-content {
+  flex: 1;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.header h2 {
+  font-size: 1.5rem;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+}
+
+.user-menu .username {
+  margin-right: 0.75rem;
+  font-weight: bold;
+}
+
+.user-menu .avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-white);
+}
+
+/* Dashboard cards */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background-color: var(--color-white);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-primary);
+}
+
+.card p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+/* Charts section */
+.charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.chart-card {
+  background-color: var(--color-white);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-card h4 {
+  font-size: 1.125rem;
+  margin-bottom: 0.75rem;
+  color: var(--color-primary);
+}
+
+.chart-container {
+  flex: 1;
+  position: relative;
+}
+
+/* Details/table section */
+.details {
+  margin-top: 2rem;
+}
+
+.details table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-white);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.details th,
+.details td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+.details th {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-weight: normal;
+}
+
+.details tr:nth-child(even) td {
+  background-color: #fafafa;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: -240px;
+    transition: left 0.3s ease;
+    z-index: 1000;
+  }
+  .sidebar.open {
+    left: 0;
+  }
+  .main-content {
+    margin-left: 0;
+  }
+  .header .menu-toggle {
+    display: block;
+    cursor: pointer;
+  }
+  .charts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.floating-time {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: var(--color-white);
+  color: var(--color-text);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  font-family: monospace;
+  font-size: 0.95rem;
+  text-align: center;
+  line-height: 1.2;
+  z-index: 1000;
+}
+.floating-time .time {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+.floating-time .date {
+  display: block;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  color: var(--color-primary-dark);
+}
+
+
+
+
+/* Room selector */
+.room-selector {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+.room-selector label {
+  margin-right: 0.5rem;
+  font-weight: bold;
+  color: var(--color-primary);
+}
+.room-selector select {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: var(--color-white);
+  color: var(--color-text);
+  transition: border-color 0.2s ease;
+}
+.room-selector select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+
+
+
+.pc-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);   /* 8 visual slots */
+  gap: 2rem;
+}
+
+
+/* Keep internal text/icons normal */
+.pc-card { direction: ltr; }
+
+/* =========================================================
+   CARD VISUALS (unchanged)
+   ========================================================= */
+
+.pc-card {
+  background: var(--color-white);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.pc-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.pc-card.selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.2);
+}
+
+/* Icon + label */
+.pc-icon {
+  width: 36px;
+  height: 36px;
+  margin-bottom: 0.5rem;
+  transition: transform 0.2s ease;
+}
+.pc-card:hover .pc-icon { transform: scale(1.1); }
+
+.pc-number {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+/* Status colours */
+.pc-card[data-status="Defective"] { background: #ffe5e5; }
+.pc-card[data-status="Defective"] .pc-number { color: var(--color-primary); }
+
+.pc-card[data-status="Working"]  { background: #e5ffe5; }
+.pc-card[data-status="Working"]  .pc-number { color: #238636; }
+
+/* PC grid ─ 4 columns  ░gap░  4 columns  (total = 9 tracks)  */
+.pc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr)   /* cols 1-4  (left block) */
+                         5rem              /* col 5    (spacer)     */
+                         repeat(4, 1fr);   /* cols 6-9 (right block)*/
+  gap: 2rem;
+  grid-auto-rows: 120px;                   /* uniform height rows   */
+}
+
+
+/* 2️⃣  Each card expands to fill its grid cell */
+.pc-card {
+  height: 100%;            /* full row-height  */
+  width:  100%;            /* full column-width */
+  display: flex;           /* keep icon + label centered */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 3️⃣  Make sure the icon never stretches the cell   */
+.pc-icon {
+  max-width: 36px;
+  max-height: 36px;
+}
