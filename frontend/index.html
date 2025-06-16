@@ -6,6 +6,8 @@
   <title>Mapua Inventory Dashboard</title>
 
   <!-- Palette variables (to be used in your CSS) -->
+
+
   <style>
     :root {
       --color-primary: #C8102E;         /* Mapúan Red */
@@ -42,6 +44,13 @@
         <li><a href="settings.html"><span class="icon">⚙️</span>Settings</a></li>
       </ul>
     </nav>
+    <!-- Sidebar footer: Sign Out -->
+    <div class="sidebar-footer">
+      <button id="signout-btn">
+        <span class="icon">🔒</span>
+        Sign Out
+      </button>
+    </div>
   </aside>
 
   <!-- Main Content -->
@@ -104,6 +113,7 @@
               <th>Room</th>
               <th>PC Number</th>
               <th>Date</th>
+              <th>Recorded By</th>
               <th>Status</th>
             </tr>
           </thead>

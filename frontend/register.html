@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register – Mapua Inventory</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="register.js"></script>
+</head>
+<body class="auth-page">
+  <div class="auth-card">
+    <h2>Create Account</h2>
+
+    <!-- (keep the top of the page the same) -->
+<form id="regForm">
+  <div class="field"><input type="text"  id="fname" placeholder="First Name" required></div>
+  <div class="field"><input type="text"  id="lname" placeholder="Last Name"  required></div>
+  <div class="field"><input type="email" id="email" placeholder="Email"      required></div>
+  <div class="field"><input type="text"  id="phone" placeholder="Contact #"  ></div>
+  <div class="field"><input type="password" id="pass"  placeholder="Password" required></div>
+
+  <!-- ⭐ no role selector anymore ⭐ -->
+
+  <button type="submit" class="btn-primary">Register</button>
+  <p class="form-msg" id="regMsg"></p>
+  <p class="switch-link">Have an account? <a href="login.html">Login</a></p>
+</form>
+
+  </div>
+</body>
+</html>

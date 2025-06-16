@@ -1,16 +1,19 @@
 <?php
-header('Content-Type: application/json');
-require __DIR__ . '/config.php';   // PDO  $pdo
+header('Content-Type: application/json; charset=utf-8');
+require __DIR__ . '/config.php';
 
-/* return the 15 most-recent “Defective” entries (PC ≤ 40) */
+/* last 10 defects (today → older) */
 $sql = "
-  SELECT l.RoomID,
-         l.PCNumber,
-         l.CheckDate,
-         l.Status
-    FROM ComputerStatusLog l
-   WHERE l.Status = 'Defective'
-     AND l.PCNumber <= '40'
-ORDER BY l.CheckDate DESC
-   LIMIT 15";
+SELECT
+  csl.RoomID,
+  csl.PCNumber,
+  csl.CheckDate,
+  csl.Status,
+  COALESCE(CONCAT(u.FirstName,' ',u.LastName),'–') AS RecordedBy
+FROM ComputerStatusLog csl
+LEFT JOIN Users u  ON u.UserID = csl.UserID
+WHERE csl.Status = 'Defective'
+ORDER BY csl.LoggedAt DESC
+LIMIT 10
+";
 echo json_encode($pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC));

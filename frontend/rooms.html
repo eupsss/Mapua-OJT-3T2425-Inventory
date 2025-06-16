@@ -75,5 +75,27 @@
       </section>
     </main>
   </div>
+  <div id="defectModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Select Issue(s)</h3>
+      <form id="defectForm">
+        <div class="issues-list">
+          <label><input type="checkbox" name="issues" value="Mouse"> Mouse</label>
+          <label><input type="checkbox" name="issues" value="Keyboard"> Keyboard</label>
+          <label><input type="checkbox" name="issues" value="Monitor"> Monitor</label>
+          <label><input type="checkbox" name="issues" value="Operating System"> OS</label>
+          <label><input type="checkbox" name="issues" value="Memory"> Memory</label>
+          <label><input type="checkbox" name="issues" value="CPU"> CPU</label>
+          <label><input type="checkbox" name="issues" value="GPU"> GPU</label>
+          <label><input type="checkbox" name="issues" value="Network"> Network</label>
+          <label><input type="checkbox" name="issues" value="Other"> Other</label>
+        </div>
+        <div class="modal-buttons">
+          <button type="button" id="defectCancel">Cancel</button>
+          <button type="submit" id="defectConfirm">Confirm</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </body>
 </html>

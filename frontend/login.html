@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login – Mapua Inventory</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="login.js"></script>
+</head>
+<body class="auth-page">
+  <div class="auth-card">
+    <h2>Sign In</h2>
+
+    <form id="loginForm">
+      <div class="field"><input type="email" id="logEmail" placeholder="Email"    required></div>
+      <div class="field"><input type="password" id="logPass" placeholder="Password" required></div>
+
+      <button type="submit" class="btn-primary">Login</button>
+      <p class="form-msg" id="loginMsg"></p>
+      <p class="switch-link">No account? <a href="register.html">Register</a></p>
+    </form>
+  </div>
+</body>
+</html>

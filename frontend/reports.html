@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reports - Mapua Inventory</title>
+
+  <!-- Palette variables & your global CSS -->
+  <style>
+    :root {
+      --color-primary: #C8102E;
+      --color-text: #333333;
+      --color-bg: #F5F5F5;
+      --color-white: #FFFFFF;
+    }
+  </style>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- page-specific JS -->
+  <script defer src="reports.js"></script>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="../icons/logo.png" alt="Logo" class="logo" />
+      <h1>Inventory</h1>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="index.html">📊 Dashboard</a></li>
+        <li><a href="rooms.html">🏠 Rooms</a></li>
+        <li class="active"><a href="reports.html">📑 Reports</a></li>
+        <li><a href="settings.html">⚙️ Settings</a></li>
+      </ul>
+    </nav>
+    <!-- sign-out at bottom -->
+    <div style="margin-top:auto; padding:1rem;">
+      <button id="btnSignOut" 
+              style="
+                width:100%;
+                padding:0.75rem;
+                background:var(--color-primary);
+                color:white;
+                border:none;
+                border-radius:4px;
+                cursor:pointer;
+              ">
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <header class="header">
+      <h2>Reports</h2>
+      <div class="user-menu">
+        <span class="username"></span>
+      </div>
+    </header>
+
+    <main>
+      <section class="details">
+        <h4>Change Log</h4>
+        <table id="reportsTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Room</th>
+              <th>PC #</th>
+              <th>Status</th>
+              <th>Issues</th>
+              <th>Recorded By</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- rows injected here -->
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
