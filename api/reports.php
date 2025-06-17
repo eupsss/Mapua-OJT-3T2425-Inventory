@@ -1,38 +1,43 @@
 <?php
-// api/reports.php
+require __DIR__.'/config.php';
 header('Content-Type: application/json; charset=utf-8');
 
-try {
-    require __DIR__ . '/config.php';   // your PDO $pdo
+/* ── reports: defect / available history + who fixed it ───────────── */
+$sql = <<<SQL
+SELECT
+  DATE(l.LoggedAt)                       AS CheckDate,
+  l.RoomID,
+  l.PCNumber,
+  l.Status,
+  l.Issues,
 
-    // Pull every daily‐log, with the user’s full name
-    $sql = "
-      SELECT 
-        l.CheckDate,
-        l.RoomID,
-        l.PCNumber,
-        l.Status,
-        -- Issues is stored as comma‐list or NULL
-        l.Issues,
-        -- build a “First Last” from Users or show ‘System’ if no user
-        COALESCE(CONCAT(u.FirstName,' ',u.LastName), 'System') AS RecordedBy
-      FROM ComputerStatusLog AS l
-      LEFT JOIN Users AS u
-        ON l.UserID = u.UserID
-      ORDER BY l.CheckDate DESC, l.LoggedAt DESC
-    ";
+  DATE(f.FixedAt)                        AS FixedOn,
+  CONCAT(u2.FirstName,' ',u2.LastName)   AS FixedBy,
 
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute();
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  CONCAT(u1.FirstName,' ',u1.LastName)   AS RecordedBy
 
-    echo json_encode($rows, JSON_UNESCAPED_UNICODE);
-    exit;
+FROM ComputerStatusLog AS l
 
-} catch (Throwable $e) {
-    http_response_code(500);
-    echo json_encode([
-      'error' => 'Server error: '.$e->getMessage()
-    ]);
-    exit;
-}
+/* first Fix *after* this log row (if any) */
+LEFT JOIN Fixes AS f
+  ON f.FixID = (
+       SELECT  MIN(fx.FixID)
+       FROM    Fixes fx
+       WHERE   fx.RoomID   = l.RoomID
+         AND   fx.PCNumber = l.PCNumber
+         AND   fx.FixedAt  >= l.LoggedAt
+     )
+
+/* user names */
+LEFT JOIN Users AS u1 ON u1.UserID = l.UserID      /* recorder  */
+LEFT JOIN Users AS u2 ON u2.UserID = f.FixedBy     /* technician*/
+
+/* show every change; add a WHERE if you only want open defects
+   WHERE l.Status = 'Defective' */
+ORDER BY l.LoggedAt DESC;
+SQL;
+
+echo json_encode(
+    $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC),
+    JSON_UNESCAPED_UNICODE
+);

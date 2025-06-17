@@ -10,6 +10,7 @@ CREATE DATABASE `MapuaInventory`
   COLLATE utf8mb4_unicode_ci;
 USE `MapuaInventory`;
 
+
 /*────────────────────────  Users  ────────────────────────*/
 CREATE TABLE `Users` (
   `UserID`       INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -23,6 +24,7 @@ CREATE TABLE `Users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 CREATE INDEX `idx_users_role` ON `Users`(`Role`);
 
+
 /*────────────────────────  Rooms  ────────────────────────*/
 CREATE TABLE `Room` (
   `RoomID` VARCHAR(10) NOT NULL,
@@ -30,6 +32,7 @@ CREATE TABLE `Room` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO `Room` VALUES ('MPO310');
+
 
 /*───────────────────────  Computers  ─────────────────────*/
 CREATE TABLE `Computers` (
@@ -43,35 +46,32 @@ CREATE TABLE `Computers` (
     ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-/* seed PCs 00-40 (portable numbers-table trick) */
+/* seed PCs 00–40 + instructor 41 */
 INSERT INTO `Computers` (`RoomID`,`PCNumber`)
 SELECT 'MPO310', LPAD(t.t*10+u.u,2,'0')
-FROM (SELECT 0 t UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL
-      SELECT 3 UNION ALL SELECT 4) t
-CROSS JOIN
-     (SELECT 0 u UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL
-      SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL
-      SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
-      SELECT 9) u
+FROM (SELECT 0 t UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4) t
+CROSS JOIN (SELECT 0 u UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+            UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) u
 WHERE (t.t*10+u.u) <= 40;
-
 INSERT INTO `Computers` VALUES ('MPO310','41','Available',NOW());
 
-/*─────────────────  ComputerStatusLog  (per-event) ─────────────────
-   • Surrogate PK  LogID  keeps every change.
-   • Composite UNIQUE keeps the “one record per PC per day” rule.
-──────────────────────────────────────────────────────────*/
+
+/*─────────────────  ComputerStatusLog  ─────────────────
+   A per-event history of every check.
+   You may insert multiple logs per PC per day.
+─────────────────────────────────────────────────────────*/
 CREATE TABLE `ComputerStatusLog` (
   `LogID`     INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `RoomID`    VARCHAR(10) NOT NULL,
   `PCNumber`  CHAR(2)     NOT NULL,
   `CheckDate` DATE        NOT NULL,
   `Status`    ENUM('Working','Defective') NOT NULL,
-  `Issues`    SET('Mouse','Keyboard','Monitor',
-                  'Operating System','Memory','CPU','GPU','Network','Other') NULL,
+  `Issues`    SET(
+                'Mouse','Keyboard','Monitor',
+                'Operating System','Memory','CPU','GPU','Network','Other'
+              ) NULL,
   `UserID`    INT UNSIGNED NULL,
   `LoggedAt`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  
 
   FOREIGN KEY (`RoomID`,`PCNumber`)
     REFERENCES `Computers`(`RoomID`,`PCNumber`)
@@ -80,8 +80,28 @@ CREATE TABLE `ComputerStatusLog` (
       ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+
+/*───────────────────────────  Fixes  ───────────────────────────
+   Records each time a PC is repaired.
+   Use this to populate “Fixed On” in your dashboard.
+───────────────────────────────────────────────────────────*/
+CREATE TABLE `Fixes` (
+  `FixID`     INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `RoomID`    VARCHAR(10)  NOT NULL,
+  `PCNumber`  CHAR(2)      NOT NULL,
+  `FixedAt`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `FixedBy`   INT UNSIGNED NULL,
+
+  FOREIGN KEY (`RoomID`,`PCNumber`)
+    REFERENCES `Computers`(`RoomID`,`PCNumber`)
+      ON UPDATE CASCADE ON DELETE RESTRICT,
+  FOREIGN KEY (`FixedBy`) REFERENCES `Users`(`UserID`)
+      ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
 /*─────────────────────  StatusLog  (daily snapshot) ───────────────────
-   Still uses the composite PK and just references Computers.
+   One row per PC per day for fast reporting or charting.
 ────────────────────────────────────────────────────────────────────────*/
 CREATE TABLE `StatusLog` (
   `RoomID`    VARCHAR(10) NOT NULL,
@@ -98,6 +118,7 @@ CREATE TABLE `StatusLog` (
   FOREIGN KEY (`UserID`) REFERENCES `Users`(`UserID`)
       ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 /*─────────────  Seed 2025 snapshot rows as “Working”  ───────────────*/
 /* 1️⃣ system account */
@@ -141,6 +162,7 @@ CROSS JOIN (
 
 DROP TEMPORARY TABLE tmp_days;
 
+
 /*──────────────── trigger: keep Computers in sync with StatusLog ─────*/
 DELIMITER $$
 CREATE TRIGGER trg_sync_statuslog
@@ -154,3 +176,8 @@ BEGIN
      AND `PCNumber` = NEW.PCNumber;
 END$$
 DELIMITER ;
+
+
+ALTER TABLE Computers
+  ADD COLUMN LastFixedAt DATETIME NULL,
+  ADD COLUMN LastFixedBy INT      NULL;

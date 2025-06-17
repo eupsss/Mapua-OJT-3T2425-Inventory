@@ -1,70 +1,92 @@
-// reports.js
-// Guard route & render a change-log table
+// reports.js – v2.1  (robust sign-out)
+console.log('▶️ reports.js loaded');
 
-// 1️⃣ Redirect if not logged in
+
+/* 1️⃣ Login guard */
 const user = JSON.parse(sessionStorage.getItem('user'));
 if (!user) {
   alert('Access denied. Please login first.');
   location.href = 'login.html';
 }
 
+/* 2️⃣ DOM ready */
 document.addEventListener('DOMContentLoaded', () => {
-  // show username
+  // inject user name
   document.querySelector('.username').textContent = user.name;
 
-  // sign-out button
-  document.getElementById('btnSignOut')
-    .addEventListener('click', () => {
+  // sign-out button – accept either id
+  const signOutBtn = document.querySelector('#signout-btn, #btnSignOut');
+  if (signOutBtn) {
+    signOutBtn.addEventListener('click', () => {
       sessionStorage.removeItem('user');
       location.href = 'login.html';
     });
+  }
+async function loadReport() {
+  const tbody = document.querySelector('#reportsTable tbody');
+  tbody.innerHTML = loadingRow();
+
+  try {
+    const res  = await fetch('../api/reports.php');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const rows = await res.json();
+
+    // ★ DEBUG: inspect what the API actually returned
+    console.log('📝 report rows:', rows);
+
+    tbody.innerHTML = '';
+    if (!rows.length) return (tbody.innerHTML = noRowsRow());
+
+    rows.forEach(r => tbody.appendChild(renderRow(r)));
+  } catch (err) {
+    console.error('Report load failed', err);
+    tbody.innerHTML = errorRow();
+  }
+}
 
   loadReport();
 });
 
+/* 3️⃣ Fetch + render */
 async function loadReport() {
   const tbody = document.querySelector('#reportsTable tbody');
-  tbody.innerHTML = `
-    <tr><td colspan="6" style="text-align:center;padding:1rem">
-      Loading…
-    </td></tr>
-  `;
+  tbody.innerHTML = loadingRow();
 
   try {
     const res = await fetch('../api/reports.php');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const rows = await res.json();
-    // expected shape: [{ CheckDate, RoomID, PCNumber, Status, Issues, RecordedBy }, …]
+    console.log(rows);
 
-    tbody.innerHTML = ''; // clear loading row
 
-    if (!rows.length) {
-      tbody.innerHTML = `
-        <tr><td colspan="6" style="text-align:center;padding:1rem">
-          No records found.
-        </td></tr>
-      `;
-      return;
-    }
+    tbody.innerHTML = '';
+    if (!rows.length) return (tbody.innerHTML = noRowsRow());
 
-    for (const r of rows) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${r.CheckDate}</td>
-        <td>${r.RoomID}</td>
-        <td>${r.PCNumber}</td>
-        <td>${r.Status}</td>
-        <td>${r.Issues || ''}</td>
-        <td>${r.RecordedBy}</td>
-      `;
-      tbody.appendChild(tr);
-    }
+    rows.forEach(r => tbody.appendChild(renderRow(r)));
   } catch (err) {
-    console.error('Failed to load report:', err);
-    tbody.innerHTML = `
-      <tr><td colspan="6" style="color:red;text-align:center;padding:1rem">
-        Error loading data
-      </td></tr>
-    `;
+    console.error('Report load failed', err);
+    tbody.innerHTML = errorRow();
   }
 }
+
+/* 4️⃣ Row helpers */
+function renderRow(r) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${r.CheckDate}</td>
+    <td>${r.RoomID}</td>
+    <td>${r.PCNumber}</td>
+    <td>${r.Status}</td>
+    <td>${r.Issues ?? ''}</td>
+    <td>${r.FixedOn ?? '—'}</td>
+    <td>${r.FixedBy ?? '—'}</td>       <!-- NEW CELL -->
+    <td>${r.RecordedBy}</td>
+  `;
+  return tr;
+}
+
+// and in your loading/no-data/error rows:
+const loadingRow = () => `<tr><td colspan="8" class="center">Loading…</td></tr>`;
+const noRowsRow  = () => `<tr><td colspan="8" class="center">No records found.</td></tr>`;
+const errorRow   = () => `<tr><td colspan="8" class="center error">Error loading data</td></tr>`;

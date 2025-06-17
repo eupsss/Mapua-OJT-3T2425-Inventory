@@ -1,262 +1,130 @@
 /* ────────────────────────────────
-   dashboard script.js
+   dashboard script.js  — single-file version
 ──────────────────────────────────*/
-const user = JSON.parse(sessionStorage.getItem('user'));
-if (!user) {
-  alert('Access denied. Please login first.');
-  location.href = 'login.html';
-} else {
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelector('.username').textContent = user.name;
-  });
-}
 
-document.addEventListener('DOMContentLoaded', async () => {
+/* hold chart instances so we can .destroy() them before redraw */
+let statusChart = null;
+let checksChart = null;
+let avgFixChart = null;
+let defectsRoomChart = null;
+let issuesChart = null;
+let fixesChart = null;
+Chart.defaults.plugins.legend.labels.boxWidth  = 14;
+Chart.defaults.plugins.legend.labels.boxHeight = 10;
 
-  /* ─── colour tokens ─── */
+/* wait for DOM */
+document.addEventListener('DOMContentLoaded', () => {
+  /* 0. guard + username */
+  const user = JSON.parse(sessionStorage.getItem('user'));
+  if (!user) {
+    alert('Access denied. Please login first.');
+    return location.href = 'login.html';
+  }
+  document.querySelector('.username').textContent = user.name;
+
+  /* 1. theme colours */
   const css          = getComputedStyle(document.documentElement);
   const colorPrimary = css.getPropertyValue('--color-primary').trim();
   const colorAccent  = css.getPropertyValue('--color-accent').trim();
   const colorText    = css.getPropertyValue('--color-text').trim();
 
-  /* ─── metrics ─── */
-  let totalPCs = 0, workingPCs = 0, defectivePCs = 0, checkedToday = 0;
-  try {
-    const mRes = await fetch('../api/metrics.php');
-    if (!mRes.ok) throw new Error(mRes.status);
-    ({ totalPCs, workingPCs, defectivePCs, checkedToday } = await mRes.json());
-  } catch (err) { console.error('Metrics load error → zeros', err); }
+  /* 2. DOM refs */
+  const dateInput  = document.querySelector('#date-filter');
+  const totalEl    = document.getElementById('total-pcs');
+  const workEl     = document.getElementById('working-pcs');
+  const defEl      = document.getElementById('defective-pcs');
+  const todayEl    = document.getElementById('checked-today');
+  const statusCtx  = document.getElementById('statusChart').getContext('2d');
+  const checkCtx   = document.getElementById('checkChart').getContext('2d');
+  const avgFixCtx  = document.getElementById('avgFixTimeChart').getContext('2d');
+  const roomCtx    = document.getElementById('defectsByRoomChart').getContext('2d');
+  const issuesCtx  = document.getElementById('issuesBreakdownChart').getContext('2d');
+  const fixesCtx   = document.getElementById('fixesOverTimeChart').getContext('2d');
 
-/* ─── recent defects ─── */
-try {
-  // NEW endpoint – pulls live data from Computers table
-  const dRes = await fetch('../api/current-defects.php');
-  if (!dRes.ok) throw new Error(dRes.status);
+  /* helper to destroy + create */
+  function setChart (oldChartRef, ctx, cfg) {
+    if (oldChartRef) oldChartRef.destroy();
+    return new Chart(ctx, cfg);
+  }
 
-  /**  Expected : [
-  *      { RoomID:"MPO310", PCNumber:"04",
-  *        LastUpdated:"2025-06-18 09:12:33",
-  *        RecordedBy:"Jane D.",
-  *        Issues:"Mouse,Memory" }
-  *   ]                                               */
-  const defects = await dRes.json();
+  /* 3. KPI + two core charts */
+  async function loadMetrics () {
+    let totalPCs=0, workingPCs=0, defectivePCs=0, checkedToday=0;
+    try {
+      const res = await fetch('../api/metrics.php');
+      if (!res.ok) throw new Error(res.status);
+      ({ totalPCs, workingPCs, defectivePCs, checkedToday } = await res.json());
+    } catch(err) { console.error('metrics', err); }
 
-  const tbody = document.getElementById('defectTable');
-  tbody.innerHTML = '';
+    totalEl.textContent = totalPCs;
+    workEl .textContent = workingPCs;
+    defEl  .textContent = defectivePCs;
+    todayEl.textContent = checkedToday;
 
-  if (!defects.length) {
-    tbody.innerHTML =
-      `<tr><td colspan="5" style="text-align:center;padding:1rem">
-         🎉 No PCs are marked defective right now
-       </td></tr>`;
-  } else {
-    defects.forEach(d => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${d.RoomID}</td>
-        <td>${d.PCNumber}</td>
-        <td>${d.LastUpdated.split(' ')[0]}</td>        <!-- date only -->
-        <td>${d.RecordedBy}</td>
-        <td>${d.Issues || '-'}</td>
-      `;
-      tbody.appendChild(tr);
+    /* doughnut */
+    statusChart = setChart(statusChart, statusCtx, {
+      type:'doughnut',
+      data:{ labels:['Working','Defective'], datasets:[{ data:[workingPCs,defectivePCs], backgroundColor:[colorPrimary,colorAccent], borderColor:colorText }]},
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{position:'bottom'} }}
+    });
+
+    /* line checks */
+    const labels = [...Array(7)].map((_,i)=>{
+      const d=new Date(); d.setDate(d.getDate()-(6-i));
+      return d.toLocaleDateString();
+    });
+    checksChart=setChart(checksChart,checkCtx,{
+      type:'line',
+      data:{ labels, datasets:[{ label:'Checked PCs', data:Array(7).fill(checkedToday), borderColor:colorPrimary, backgroundColor:colorAccent, tension:0.3, fill:true }]},
+      options:{ responsive:true, maintainAspectRatio:false }
     });
   }
-} catch (err) {
-  console.error('Defects load error', err);
-}
 
-/* ────────────────────────────────
-   dashboard script.js
-──────────────────────────────────*/
-const user = JSON.parse(sessionStorage.getItem('user'));
-if (!user) {
-  alert('Access denied. Please login first.');
-  location.href = 'login.html';
-} else {
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelector('.username').textContent = user.name;
-  });
-}
+  /* 4. additional charts (use real data when API ready) */
+  async function drawAvgFixTime(){
+    try{
+      const { avgHours }=await (await fetch('../api/avg-fix-time.php')).json();
+      avgFixChart=setChart(avgFixChart,avgFixCtx,{type:'bar',data:{labels:['Avg hrs'],datasets:[{data:[avgHours||0],backgroundColor:colorAccent,borderColor:colorPrimary}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+    }catch(e){console.error('avg fix',e);} }
 
-document.addEventListener('DOMContentLoaded', async () => {
+  async function drawDefectsByRoom(){
+    try{ const data=await (await fetch('../api/defects-by-room.php')).json();
+      defectsRoomChart=setChart(defectsRoomChart,roomCtx,{type:'bar',data:{labels:data.map(r=>r.RoomID),datasets:[{data:data.map(r=>r.defects),backgroundColor:colorPrimary}]},options:{plugins:{legend:{display:false}},indexAxis:'y'}});
+    }catch(e){console.error('room',e);} }
 
-  /* ─── colour tokens ─── */
-  const css          = getComputedStyle(document.documentElement);
-  const colorPrimary = css.getPropertyValue('--color-primary').trim();
-  const colorAccent  = css.getPropertyValue('--color-accent').trim();
-  const colorText    = css.getPropertyValue('--color-text').trim();
+  async function drawIssuesBreakdown(){
+    try{ const data=await (await fetch('../api/issues-breakdown.php')).json();
+      issuesChart=setChart(issuesChart,issuesCtx,{type:'pie',data:{labels:data.map(i=>i.issue),datasets:[{data:data.map(i=>i.cnt),backgroundColor:[colorPrimary,colorAccent,'#6c757d','#17a2b8','#28a745']}]}});
+    }catch(e){console.error('issues',e);} }
 
-  /* ─── metrics ─── */
-  let totalPCs = 0, workingPCs = 0, defectivePCs = 0, checkedToday = 0;
-  try {
-    const mRes = await fetch('../api/metrics.php');
-    if (!mRes.ok) throw new Error(mRes.status);
-    ({ totalPCs, workingPCs, defectivePCs, checkedToday } = await mRes.json());
-  } catch (err) { console.error('Metrics load error → zeros', err); }
+  async function drawFixesOverTime(){
+    try{ const data=await (await fetch('../api/fixes-over-time.php')).json();
+      fixesChart=setChart(fixesChart,fixesCtx,{type:'line',data:{labels:data.map(r=>r.d),datasets:[{label:'Fixes',data:data.map(r=>r.cnt),borderColor:colorPrimary,backgroundColor:colorAccent,tension:0.3,fill:false}]},options:{plugins:{legend:{position:'bottom'}}}});
+    }catch(e){console.error('fixes',e);} }
 
-  /* ─── recent defects ─── */
-  try {
-    const dRes = await fetch('../api/defects.php');
-    if (!dRes.ok) throw new Error(dRes.status);
-    const defects = await dRes.json();          // [{…RecordedBy…}, …]
+  /* 5. clock 24-hour */
+  function updateClock(){
+    const n=new Date();
+    const hh=String(n.getHours()).padStart(2,'0');
+    const mm=String(n.getMinutes()).padStart(2,'0');
+    const ss=String(n.getSeconds()).padStart(2,'0');
+    document.getElementById('floating-time').innerHTML=`<span class="time">${hh}:${mm}:${ss}</span><span class="date">${n.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</span>`;
+  }
 
-    const tbody = document.getElementById('defectTable');
-    tbody.innerHTML = '';                       // fresh slate
-    defects.forEach(d => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${d.RoomID}</td>
-        <td>${d.PCNumber}</td>
-        <td>${d.CheckDate}</td>
-        <td>${d.RecordedBy}</td>
-        <td>${d.Status}</td>`;
-      tbody.appendChild(tr);
-    });
-  } catch (err) { console.error('Defects load error', err); }
+  /* 6. bootstrap */
+  (async()=>{
+    const today=new Date().toISOString().slice(0,10);
+    dateInput.value=today;
 
-  /* ─── update KPI cards ─── */
-  document.getElementById('total-pcs').textContent      = totalPCs;
-  document.getElementById('working-pcs').textContent    = workingPCs;
-  document.getElementById('defective-pcs').textContent  = defectivePCs;
-  document.getElementById('checked-today').textContent  = checkedToday;
+    await loadMetrics();
+    await Promise.all([
+      drawAvgFixTime(),
+      drawDefectsByRoom(),
+      drawIssuesBreakdown(),
+      drawFixesOverTime()
+    ]);
 
-  /* ─── doughnut ─── */
-  new Chart(document.getElementById('statusChart'), {
-    type : 'doughnut',
-    data : {
-      labels: ['Working', 'Defective'],
-      datasets: [{
-        data: [workingPCs, defectivePCs],
-        backgroundColor: [colorPrimary, colorAccent],
-        borderColor: colorText,
-        borderWidth: 1
-      }]
-    },
-    options : {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom' } }
-    }
-  });
-
-  /* ─── simple line placeholder ─── */
-  const last7Days  = [...Array(7).keys()].map(i=>{
-    const d = new Date(); d.setDate(d.getDate() - (6-i));
-    return d.toLocaleDateString();
-  });
-  const checksData = Array(7).fill(checkedToday);
-
-  new Chart(document.getElementById('checkChart'), {
-    type : 'line',
-    data : {
-      labels: last7Days,
-      datasets: [{
-        label: 'Checked PCs',
-        data : checksData,
-        borderColor: colorPrimary,
-        backgroundColor: colorAccent,
-        tension: 0.3,
-        fill: true
-      }]
-    },
-    options : {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: { ticks: { color: colorText } },
-        y: { beginAtZero: true, ticks: { color: colorText } }
-      }
-    }
-  });
+    updateClock();
+    setInterval(updateClock,1000);
+  })();
 });
-
-/* ─── floating clock ─── */
-function updateClock () {
-  const now = new Date();
-  let   h   = now.getHours();
-  const am  = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  const m = String(now.getMinutes()).padStart(2,'0');
-  const s = String(now.getSeconds()).padStart(2,'0');
-  const time = `${h}:${m}:${s} ${am}`;
-  const date = now.toLocaleDateString('en-US',
-              { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-
-  document.getElementById('floating-time').innerHTML =
-    `<span class="time">${time}</span><span class="date">${date}</span>`;
-}
-updateClock(); setInterval(updateClock,1000);
-
-  /* ─── update KPI cards ─── */
-  document.getElementById('total-pcs').textContent      = totalPCs;
-  document.getElementById('working-pcs').textContent    = workingPCs;
-  document.getElementById('defective-pcs').textContent  = defectivePCs;
-  document.getElementById('checked-today').textContent  = checkedToday;
-
-  /* ─── doughnut ─── */
-  new Chart(document.getElementById('statusChart'), {
-    type : 'doughnut',
-    data : {
-      labels: ['Working', 'Defective'],
-      datasets: [{
-        data: [workingPCs, defectivePCs],
-        backgroundColor: [colorPrimary, colorAccent],
-        borderColor: colorText,
-        borderWidth: 1
-      }]
-    },
-    options : {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom' } }
-    }
-  });
-
-  /* ─── simple line placeholder ─── */
-  const last7Days  = [...Array(7).keys()].map(i=>{
-    const d = new Date(); d.setDate(d.getDate() - (6-i));
-    return d.toLocaleDateString();
-  });
-  const checksData = Array(7).fill(checkedToday);
-
-  new Chart(document.getElementById('checkChart'), {
-    type : 'line',
-    data : {
-      labels: last7Days,
-      datasets: [{
-        label: 'Checked PCs',
-        data : checksData,
-        borderColor: colorPrimary,
-        backgroundColor: colorAccent,
-        tension: 0.3,
-        fill: true
-      }]
-    },
-    options : {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: { ticks: { color: colorText } },
-        y: { beginAtZero: true, ticks: { color: colorText } }
-      }
-    }
-  });
-});
-
-/* ─── floating clock ─── */
-function updateClock () {
-  const now = new Date();
-  let   h   = now.getHours();
-  const am  = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  const m = String(now.getMinutes()).padStart(2,'0');
-  const s = String(now.getSeconds()).padStart(2,'0');
-  const time = `${h}:${m}:${s} ${am}`;
-  const date = now.toLocaleDateString('en-US',
-              { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-
-  document.getElementById('floating-time').innerHTML =
-    `<span class="time">${time}</span><span class="date">${date}</span>`;
-}
-updateClock(); setInterval(updateClock,1000);

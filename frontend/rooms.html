@@ -97,5 +97,42 @@
       </form>
     </div>
   </div>
+  <!-- ───────────────  NEW  ─────────────── -->
+<div id="fixModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Log a Fix</h3>
+
+    <form id="fixForm" class="fix-form">
+  <div class="form-group">
+    <label for="fixDate">Fixed On</label>
+    <!-- Log Fix modal -->
+<input type="datetime-local"
+       id="fixDateTime"    
+       name="fixedOn"
+       required>
+
+  </div>
+
+  <div class="form-group">
+    <label for="fixerInput">Fixed By</label>
+    <input  type="text"
+            id="fixerInput"
+            name="fixedBy"
+            list="fixerList"
+            placeholder="Type to search…"
+            required />
+    <datalist id="fixerList"></datalist>
+  </div>
+
+  <div class="modal-buttons">
+    <button type="button" id="fixCancel" class="btn-light">Cancel</button>
+    <button type="submit"                class="btn-primary">Confirm</button>
+  </div>
+</form>
+
+  </div>
+</div>
+<!-- ───────────────────────────────────── -->
+
 </body>
 </html>

@@ -1,79 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mapua Inventory Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapúa Inventory Dashboard</title>
 
-  <!-- Palette variables (to be used in your CSS) -->
+  <!-- External CSS -->
+  <link rel="stylesheet" href="styles.css">
 
-
-  <style>
-    :root {
-      --color-primary: #C8102E;         /* Mapúan Red */
-      --color-primary-dark: #A10B26;    /* Dark Red */
-      --color-accent: #FFC72C;          /* Gold Accent */
-      --color-text: #333333;            /* Charcoal */
-      --color-bg: #F5F5F5;              /* Light Gray */
-      --color-white: #FFFFFF;           /* White */
-    }
-  </style>
-
-  <!-- Link to CSS -->
-  <link rel="stylesheet" href="styles.css" />
-  <!-- Chart.js (for your graphs) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Your app JS -->
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <!-- Dashboard JS -->
   <script defer src="script.js"></script>
 </head>
 <body>
-  <!-- Floating clock -->
   <div id="floating-time" class="floating-time">00:00:00</div>
-
-  <!-- Sidebar Navigation -->
   <aside class="sidebar">
     <div class="brand">
-      <img src="../icons/logo.png" alt="Logo" class="logo" />
+      <img src="../icons/logo.png" alt="Logo" class="logo">
       <h1>Inventory</h1>
     </div>
     <nav>
       <ul>
-        <li class="active"><a href="index.html"><span class="icon">📊</span>Dashboard</a></li>
-        <li><a href="rooms.html"><span class="icon">🏠</span>Rooms</a></li>
-        <li><a href="reports.html"><span class="icon">📑</span>Reports</a></li>
-        <li><a href="settings.html"><span class="icon">⚙️</span>Settings</a></li>
+        <li class="active"><a href="index.html">📊 Dashboard</a></li>
+        <li><a href="rooms.html">🏠 Rooms</a></li>
+        <li><a href="reports.html">📑 Reports</a></li>
+        <li><a href="settings.html">⚙️ Settings</a></li>
       </ul>
     </nav>
-    <!-- Sidebar footer: Sign Out -->
     <div class="sidebar-footer">
-      <button id="signout-btn">
-        <span class="icon">🔒</span>
-        Sign Out
-      </button>
+      <button id="signout-btn">🔒 Sign Out</button>
     </div>
   </aside>
 
-  <!-- Main Content -->
   <div class="main-content">
-    <!-- Header -->
     <header class="header">
       <h2>Dashboard</h2>
-      <div class="user-menu">
-        <span class="username"></span>
-        <!-- <img src="avatar.png" alt="Your Avatar" class="avatar" /> -->
-      </div>
+      <span class="username"></span>
     </header>
 
-    <!-- Dashboard Cards -->
     <main>
+      <!-- Filters -->
+      <section class="filters">
+        <label for="date-filter">Select Date:</label>
+        <input type="date" id="date-filter">
+      </section>
+
+      <!-- KPI Cards -->
       <section class="cards">
         <div class="card">
           <h3>Total PCs</h3>
-          <p id="total-pcs">41</p>
+          <p id="total-pcs">0</p>
         </div>
         <div class="card">
           <h3>Working PCs</h3>
-          <p id="working-pcs">41</p>
+          <p id="working-pcs">0</p>
         </div>
         <div class="card">
           <h3>Defective PCs</h3>
@@ -81,47 +62,38 @@
         </div>
         <div class="card">
           <h3>Checked Today</h3>
-          <p id="checked-today">41</p>
+          <p id="checked-today">0</p>
         </div>
       </section>
 
-      <!-- Charts Section -->
+      <!-- Graphs -->
       <section class="charts">
-        <!-- Example Chart Card: Status Breakdown -->
         <div class="chart-card">
           <h4>PC Status Breakdown</h4>
-          <div class="chart-container">
-            <canvas id="statusChart"></canvas>
-          </div>
+          <canvas id="statusChart"></canvas>
         </div>
-
-        <!-- Example Chart Card: Daily Checks -->
         <div class="chart-card">
           <h4>Checks Over Time</h4>
-          <div class="chart-container">
-            <canvas id="checkChart"></canvas>
-          </div>
+          <canvas id="checkChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <h4>Average Time to Fix</h4>
+          <canvas id="avgFixTimeChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <h4>Defects by Room</h4>
+          <canvas id="defectsByRoomChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <h4>Issues Breakdown</h4>
+          <canvas id="issuesBreakdownChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <h4>Fixes Over Time</h4>
+          <canvas id="fixesOverTimeChart"></canvas>
         </div>
       </section>
 
-      <!-- Details / Table Section -->
-      <section class="details">
-        <h4>Recent Defects</h4>
-        <table>
-          <thead>
-            <tr>
-              <th>Room</th>
-              <th>PC Number</th>
-              <th>Date</th>
-              <th>Recorded By</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="defectTable">
-            <!-- Rows will be inserted here -->
-          </tbody>
-        </table>
-      </section>
     </main>
   </div>
 </body>
