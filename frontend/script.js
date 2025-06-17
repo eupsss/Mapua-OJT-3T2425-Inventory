@@ -27,7 +27,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     ({ totalPCs, workingPCs, defectivePCs, checkedToday } = await mRes.json());
   } catch (err) { console.error('Metrics load error → zeros', err); }
 
-  /* ─── recent defects ─── */
+/* ─── recent defects ─── */
+try {
+  // NEW endpoint – pulls live data from Computers table
+  const dRes = await fetch('../api/current-defects.php');
+  if (!dRes.ok) throw new Error(dRes.status);
+
+  /**  Expected : [
+  *      { RoomID:"MPO310", PCNumber:"04",
+  *        LastUpdated:"2025-06-18 09:12:33",
+  *        RecordedBy:"Jane D.",
+  *        Issues:"Mouse,Memory" }
+  *   ]                                               */
+  const defects = await dRes.json();
+
+  const tbody = document.getElementById('defectTable');
+  tbody.innerHTML = '';
+
+  if (!defects.length) {
+    tbody.innerHTML =
+      `<tr><td colspan="5" style="text-align:center;padding:1rem">
+         🎉 No PCs are marked defective right now
+       </td></tr>`;
+  } else {
+    defects.forEach(d => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${d.RoomID}</td>
+        <td>${d.PCNumber}</td>
+        <td>${d.LastUpdated.split(' ')[0]}</td>        <!-- date only -->
+        <td>${d.RecordedBy}</td>
+        <td>${d.Issues || '-'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+} catch (err) {
+  console.error('Defects load error', err);
+}
+
 /* ────────────────────────────────
    dashboard script.js
 ──────────────────────────────────*/
