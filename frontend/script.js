@@ -15,6 +15,7 @@ Chart.defaults.plugins.legend.labels.boxHeight = 10;
 /* wait for DOM */
 document.addEventListener('DOMContentLoaded', () => {
   /* 0. guard + username */
+  
   const user = JSON.parse(sessionStorage.getItem('user'));
   if (!user) {
     alert('Access denied. Please login first.');
@@ -112,9 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* 6. bootstrap */
-  (async()=>{
-    const today=new Date().toISOString().slice(0,10);
-    dateInput.value=today;
+  (async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    dateInput.value = today;
 
     await loadMetrics();
     await Promise.all([
@@ -125,6 +126,13 @@ document.addEventListener('DOMContentLoaded', () => {
     ]);
 
     updateClock();
-    setInterval(updateClock,1000);
+    setInterval(updateClock, 1000);
+
+    /* ✉️ tell any parent window we’re ready */
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'charts-ready' }, '*');
+    }
   })();
+
+
 });

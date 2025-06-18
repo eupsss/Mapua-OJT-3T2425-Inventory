@@ -103,3 +103,15 @@ body{
   .charts{ grid-template-columns: 1fr; }
   .cards { grid-template-columns: 1fr; }
 }
+/* export button — re-uses your green accent */
+.export-btn{
+  display:block;                   /* full-width like the sign-out button */
+  background:#238636;
+  color:#fff;
+  text-align:center;
+  padding:8px 0;
+  border-radius:4px;
+  text-decoration:none;
+  margin-bottom:8px;               /* keeps a small gap above Sign Out */
+}
+.export-btn:hover{background:#2ea043;}

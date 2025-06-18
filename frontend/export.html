@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Export Inventory Charts</title>
+
+  <!-- UI styles (optional) -->
+  <style>
+    body{font-family:Arial, sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;background:#0d1117;color:#f0f6fc}
+    button{background:#238636;border:none;color:#fff;font-size:1rem;padding:10px 22px;border-radius:6px;cursor:pointer}
+    button:hover{background:#2ea043}
+  </style>
+
+  <!-- pdf / bitmap helpers -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
+</head>
+<body>
+  <button id="download-pdf">📥 Export Inventory Charts (PDF)</button>
+
+  <!-- Hidden dashboard (same-origin, so we can read its DOM) -->
+  <!-- Hidden dashboard (still participates in layout) -->
+<iframe id="dash-frame"
+        src="index.html"
+        style="
+          position:absolute;
+          top:-9999px;          /* off-screen */
+          left:-9999px;
+          width:1280px;         /* or whatever width your dashboard uses */
+          height:900px;         /* ditto height */
+          border:0;
+          visibility:hidden;    /* keeps it hidden but measurable */
+"></iframe>
+
+
+  <script>
+  /* -------------------------------------------------------------
+     1.  Message broker – run IMMEDIATELY so we never miss a signal
+  ------------------------------------------------------------- */
+  let chartsReady = false;                 // cache
+  let waitingRes  = null;                  // pending resolver
+
+  window.addEventListener('message', e => {
+    if (e.data && e.data.type === 'charts-ready') {
+      chartsReady = true;
+      if (waitingRes) { waitingRes(); waitingRes = null; }
+    }
+  });
+
+  /* Promise helper */
+  const waitForCharts = () =>
+    chartsReady ? Promise.resolve()
+                : new Promise(res => waitingRes = res);
+
+  /* -------------------------------------------------------------
+     2.  Export logic
+  ------------------------------------------------------------- */
+/* Export logic */
+document.getElementById('download-pdf').addEventListener('click', async () => {
+  const iframe = document.getElementById('dash-frame');
+
+  chartsReady = false;
+  iframe.contentWindow.location.reload();
+  await waitForCharts();
+
+  /* 👇 NEW: give Chart.js time to finish its 400 ms default animation */
+  await new Promise(res => setTimeout(res, 1600));   // adjust if you changed duration
+
+  // …rest of the code unchanged…
+
+
+
+    const iDoc = iframe.contentWindow.document;
+    const { jsPDF } = window.jspdf;
+    const pdf  = new jsPDF({ orientation:'landscape', unit:'pt', format:'a4' });
+    const page = { w: pdf.internal.pageSize.getWidth(),
+                   h: pdf.internal.pageSize.getHeight() };
+
+    const ids = [
+      'statusChart','checkChart','avgFixTimeChart',
+      'defectsByRoomChart','issuesBreakdownChart','fixesOverTimeChart'
+    ];
+
+    /* helper: rasterise one <canvas> */
+    const raster = async c =>
+      await html2canvas(c, { backgroundColor:'#fff', scale:2 });
+
+    for (let i = 0; i < ids.length; i++) {
+      const canvas = iDoc.getElementById(ids[i]);
+      if (!canvas) continue;                           // skip missing
+
+      const bmp  = await raster(canvas);
+      const img  = bmp.toDataURL('image/png');
+
+      const m  = 40;                                  // margin
+      const r  = Math.min((page.w-2*m)/bmp.width,
+                          (page.h-2*m)/bmp.height);
+      const w  = bmp.width  * r,
+            h  = bmp.height * r;
+
+      pdf.addImage(img, 'PNG',
+                   (page.w - w) / 2,
+                   (page.h - h) / 2,
+                   w, h, '', 'FAST');
+
+      if (i < ids.length - 1) pdf.addPage();
+    }
+
+    pdf.save('Mapua_Inventory_Charts.pdf');
+  });
+</script>
+
+</body>
+</html>

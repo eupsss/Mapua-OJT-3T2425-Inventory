@@ -1,36 +1,49 @@
-document.getElementById('regForm').addEventListener('submit', async e => {
-  e.preventDefault();
+/* login.js – Mapúa Inventory */
+document.addEventListener('DOMContentLoaded', () => {
+  const form   = document.getElementById('loginForm');
+  const msgBox = document.getElementById('loginMsg');
+  const btn    = form.querySelector('button[type="submit"]');
 
-  /* 🟢  grab the feedback element */
-  const msg = document.getElementById('regMsg');
+  /* relative path → api/ */
+  const API_BASE = '../api';
 
-  const payload = {
-    fname: document.getElementById('fname').value.trim(),
-    lname: document.getElementById('lname').value.trim(),
-    email: document.getElementById('email').value.trim(),
-    phone: document.getElementById('phone').value.trim(),
-    pass : document.getElementById('pass').value,
-    role : 'Viewer'          // hard-wired
-  };
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    msgBox.textContent = '';                         // clear
 
-  try {
-    const res = await fetch('../api/register.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const j = await res.json();
+    const email = document.getElementById('logEmail').value.trim();
+    const pass  = document.getElementById('logPass').value;
 
-    if (j.success) {
-      msg.style.color = 'green';
-      msg.textContent = 'Registered! Redirecting…';
-      setTimeout(() => location.href = 'login.html', 1500);
-    } else {
-      msg.style.color = 'red';
-      msg.textContent = j.error || 'Registration failed';
+    if (!email || !pass) {
+      return (msgBox.textContent = 'Both fields are required.');
     }
-  } catch (err) {
-    msg.style.color = 'red';
-    msg.textContent = 'Network error';
-  }
+
+    /* lock UI */
+    btn.disabled = true; btn.textContent = 'Signing in…';
+
+    try {
+      const res  = await fetch(`${API_BASE}/login.php`, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ email, pass })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+
+      /* success → store + go to dashboard */
+      sessionStorage.setItem('user', JSON.stringify(data.user));
+      window.location.href = 'index.html';
+
+    } catch (err) {
+      console.error(err);
+      msgBox.textContent = err.message === 'Failed to fetch'
+        ? 'Network error – is the API running?'
+        : err.message;
+      btn.disabled = false; btn.textContent = 'Login';
+    }
+  });
 });

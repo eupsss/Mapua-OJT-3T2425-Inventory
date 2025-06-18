@@ -1,31 +1,49 @@
-// login.js
-document.getElementById('loginForm').addEventListener('submit', async e => {
-  e.preventDefault();
+/* login.js – Mapúa Inventory */
+document.addEventListener('DOMContentLoaded', () => {
+  const form   = document.getElementById('loginForm');
+  const msgBox = document.getElementById('loginMsg');
+  const btn    = form.querySelector('button[type="submit"]');
 
-  // grab the message container
-  const msg = document.getElementById('loginMsg');
+  /* relative path → api/ */
+  const API_BASE = '../api';
 
-  // use the actual input IDs
-  const payload = {
-    email: document.getElementById('logEmail').value.trim(),
-    pass:  document.getElementById('logPass').value
-  };
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    msgBox.textContent = '';                         // clear
 
-  try {
-    const res = await fetch('../api/login.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const j = await res.json();
+    const email = document.getElementById('logEmail').value.trim();
+    const pass  = document.getElementById('logPass').value;
 
-    if (j.success && j.user) {
-      sessionStorage.setItem('user', JSON.stringify(j.user));
-      window.location.href = 'index.html';
-    } else {
-      msg.textContent = j.error || 'Login failed';
+    if (!email || !pass) {
+      return (msgBox.textContent = 'Both fields are required.');
     }
-  } catch (err) {
-    msg.textContent = 'Network error';
-  }
+
+    /* lock UI */
+    btn.disabled = true; btn.textContent = 'Signing in…';
+
+    try {
+      const res  = await fetch(`${API_BASE}/login.php`, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ email, pass })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+
+      /* success → store + go to dashboard */
+      sessionStorage.setItem('user', JSON.stringify(data.user));
+      window.location.href = 'index.html';
+
+    } catch (err) {
+      console.error(err);
+      msgBox.textContent = err.message === 'Failed to fetch'
+        ? 'Network error – is the API running?'
+        : err.message;
+      btn.disabled = false; btn.textContent = 'Login';
+    }
+  });
 });
