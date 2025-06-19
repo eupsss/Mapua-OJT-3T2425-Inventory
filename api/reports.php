@@ -11,31 +11,34 @@ SELECT
   l.Status,
   l.Issues,
 
-  DATE(f.FixedAt)                        AS FixedOn,
-  CONCAT(u2.FirstName,' ',u2.LastName)   AS FixedBy,
+  /* dash when no match */
+  COALESCE(DATE(f.FixedAt),        '—')  AS FixedOn,
+  COALESCE(CONCAT(u2.FirstName,' ',u2.LastName), '—')
+                                         AS FixedBy,
 
   CONCAT(u1.FirstName,' ',u1.LastName)   AS RecordedBy
 
-FROM ComputerStatusLog AS l
+FROM   ComputerStatusLog AS l
 
-/* first Fix *after* this log row (if any) */
+/* latest repair ON or BEFORE this log */
 LEFT JOIN Fixes AS f
   ON f.FixID = (
-       SELECT  MIN(fx.FixID)
-       FROM    Fixes fx
-       WHERE   fx.RoomID   = l.RoomID
-         AND   fx.PCNumber = l.PCNumber
-         AND   fx.FixedAt  >= l.LoggedAt
+       SELECT fx.FixID
+       FROM   Fixes fx
+       WHERE  fx.RoomID   = l.RoomID
+         AND  fx.PCNumber = l.PCNumber
+         AND  fx.FixedAt  <= l.LoggedAt        -- key line
+       ORDER BY fx.FixedAt DESC
+       LIMIT 1
      )
 
-/* user names */
-LEFT JOIN Users AS u1 ON u1.UserID = l.UserID      /* recorder  */
-LEFT JOIN Users AS u2 ON u2.UserID = f.FixedBy     /* technician*/
+/* user look-ups */
+LEFT JOIN Users AS u1 ON u1.UserID = l.UserID      -- recorder
+LEFT JOIN Users AS u2 ON u2.UserID = f.FixedBy     -- technician
 
-/* show every change; add a WHERE if you only want open defects
-   WHERE l.Status = 'Defective' */
 ORDER BY l.LoggedAt DESC;
 SQL;
+
 
 echo json_encode(
     $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC),

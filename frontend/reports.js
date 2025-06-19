@@ -72,19 +72,26 @@ async function loadReport() {
 
 /* 4️⃣ Row helpers */
 function renderRow(r) {
+  // decide what to show in the Status column
+  const statusDisplay =
+        (r.FixedOn && r.FixedOn !== '—')   // any non-dash date means repaired
+          ? 'Fixed'
+          : 'Under Repair';
+
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td>${r.CheckDate}</td>
     <td>${r.RoomID}</td>
     <td>${r.PCNumber}</td>
-    <td>${r.Status}</td>
-    <td>${r.Issues ?? ''}</td>
-    <td>${r.FixedOn ?? '—'}</td>
-    <td>${r.FixedBy ?? '—'}</td>       <!-- NEW CELL -->
+    <td>${statusDisplay}</td>          <!-- 👈 computed status -->
+    <td>${r.Issues || ''}</td>
+    <td>${r.FixedOn}</td>
+    <td>${r.FixedBy}</td>
     <td>${r.RecordedBy}</td>
   `;
   return tr;
 }
+
 
 // and in your loading/no-data/error rows:
 const loadingRow = () => `<tr><td colspan="8" class="center">Loading…</td></tr>`;
