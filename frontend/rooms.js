@@ -37,9 +37,10 @@ let roomSelect, pcGrid,
  * 4)  Fetch helpers
  *************************************************/
 async function fetchJSON(url, opts = {}) {
-  const res = await fetch(url, opts);
-  if (!res.ok) throw new Error(`${url} – HTTP ${res.status}`);
-  return res.json();
+  const res      = await fetch(url, opts);
+  const payload  = await res.json().catch(() => ({}));   // still try
+  if (!res.ok)  throw new Error(payload.error || res.statusText);
+  return payload;
 }
 
 /* update‑status.php – mark PC as Defective / Working */
@@ -179,13 +180,14 @@ function wireDefectModal() {
 
     setCardVisual(card, 'Defective');
 
-    try {
-      await updateStatus(roomID, pcNumber, 'Defective', issues);
-    } catch (err) {
-      console.error(err);
-      alert('Failed to report defect.');
-      setCardVisual(card, 'Available');
-    }
+try {
+  await updateStatus(roomID, pcNumber, 'Defective', issues);
+} catch (err) {
+  console.error('update-status:', err.message);
+  alert('Failed to report defect:\n' + err.message);
+  setCardVisual(card, 'Available');
+}
+
   });
 }
 

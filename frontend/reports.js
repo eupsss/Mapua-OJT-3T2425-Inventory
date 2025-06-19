@@ -72,18 +72,16 @@ async function loadReport() {
 
 /* 4️⃣ Row helpers */
 function renderRow(r) {
-  // decide what to show in the Status column
   const statusDisplay =
-        (r.FixedOn && r.FixedOn !== '—')   // any non-dash date means repaired
-          ? 'Fixed'
-          : 'Under Repair';
+        (r.FixedOn && r.FixedOn !== '—') ? 'Fixed' : 'Under Repair';
 
   const tr = document.createElement('tr');
   tr.innerHTML = `
+    <td>${r.ServiceTicketID}</td>   <!-- NEW -->
     <td>${r.CheckDate}</td>
     <td>${r.RoomID}</td>
     <td>${r.PCNumber}</td>
-    <td>${statusDisplay}</td>          <!-- 👈 computed status -->
+    <td>${statusDisplay}</td>
     <td>${r.Issues || ''}</td>
     <td>${r.FixedOn}</td>
     <td>${r.FixedBy}</td>
@@ -93,7 +91,8 @@ function renderRow(r) {
 }
 
 
-// and in your loading/no-data/error rows:
-const loadingRow = () => `<tr><td colspan="8" class="center">Loading…</td></tr>`;
-const noRowsRow  = () => `<tr><td colspan="8" class="center">No records found.</td></tr>`;
-const errorRow   = () => `<tr><td colspan="8" class="center error">Error loading data</td></tr>`;
+
+const loadingRow = () => `<tr><td colspan="9" class="center">Loading…</td></tr>`;
+const noRowsRow  = () => `<tr><td colspan="9" class="center">No records found.</td></tr>`;
+const errorRow   = () => `<tr><td colspan="9" class="center error">Error loading data</td></tr>`;
+
