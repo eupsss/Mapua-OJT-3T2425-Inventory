@@ -487,3 +487,27 @@ body {
 .btn-primary:hover {
   background: var(--color-primary-dark);
 }
+/* The base look comes from rooms.css – this file just adds minor tweaks */
+
+.pc-grid {
+  display:grid;
+  grid-template-columns:repeat(4,1fr) 5rem repeat(4,1fr);
+  gap:2rem;
+  grid-auto-rows:120px;
+}
+.pc-card{
+  background:var(--color-white);
+  border:2px solid transparent;
+  border-radius:8px;
+  padding:.75rem;
+  text-align:center;
+  cursor:pointer;
+  transition:transform .2s, box-shadow .2s, border-color .2s;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+}
+.pc-card:hover{transform:translateY(-4px);box-shadow:0 4px 8px rgb(0 0 0 / .1);}
+.pc-number{margin-top:.35rem;font-weight:600;color:var(--color-text);}
+.pc-icon{max-width:36px;max-height:36px;user-select:none;}
+
+/* modal inherits rooms.css */
+

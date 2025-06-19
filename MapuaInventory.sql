@@ -194,4 +194,70 @@ CROSS JOIN (
 ) pc;
 DROP TEMPORARY TABLE tmp_days;
 
+CREATE TABLE `ComputerAssets` (
+  `AssetID`       INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `RoomID`        VARCHAR(10) NOT NULL,
+  `PCNumber`      CHAR(2)     NOT NULL,
+  /* life-cycle */
+  `InstalledAt`   DATE        NOT NULL,
+  `RetiredAt`     DATE        NULL,          -- NULL = still in service
+  /* core specs */
+  `MakeModel`     VARCHAR(100) NOT NULL,     -- e.g. “Dell OptiPlex 5000”
+  `SerialNumber`  VARCHAR(100) NOT NULL,
+  `CPU`           VARCHAR(100) NULL,
+  `GPU`           VARCHAR(100) NULL,
+  `RAM_GB`        SMALLINT     NULL,
+  `Storage_GB`    SMALLINT     NULL,
+  /* peripherals */
+  `MonitorModel`  VARCHAR(100) NULL,
+  `MonitorSerial` VARCHAR(100) NULL,
+  `UPSModel`      VARCHAR(100) NULL,
+  `UPSSerial`     VARCHAR(100) NULL,
+  /* audit */
+  `CreatedBy`     INT UNSIGNED NULL,
+  `CreatedAt`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT `fk_assets_computers`
+    FOREIGN KEY (`RoomID`,`PCNumber`)
+    REFERENCES `Computers` (`RoomID`,`PCNumber`)
+      ON UPDATE CASCADE ON DELETE RESTRICT,
+
+  CONSTRAINT `fk_assets_user`
+    FOREIGN KEY (`CreatedBy`) REFERENCES `Users`(`UserID`)
+      ON UPDATE CASCADE ON DELETE SET NULL,
+
+  /* one active asset per terminal */
+  UNIQUE KEY `uk_active_asset`
+    (`RoomID`,`PCNumber`,`RetiredAt`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+/*  Optional helper VIEW – current hardware only */
+CREATE OR REPLACE VIEW `v_CurrentAssets` AS
+SELECT *
+FROM   `ComputerAssets`
+WHERE  `RetiredAt` IS NULL;
+
+/*  Optional daily event – flag PCs older than 5 years (status = Retired) */
+DELIMITER $$
+CREATE EVENT IF NOT EXISTS `ev_retire_old_pcs`
+ON SCHEDULE EVERY 1 DAY
+DO
+  UPDATE `Computers`  AS c
+  JOIN   `ComputerAssets` AS a
+         ON a.RoomID = c.RoomID AND a.PCNumber = c.PCNumber
+  SET    c.Status = 'Retired'
+  WHERE  a.RetiredAt IS NULL
+    AND  a.InstalledAt <= DATE_SUB(CURDATE(), INTERVAL 5 YEAR);$$
+DELIMITER ;
+
+/* 2.  Expand user roles */
+ALTER TABLE `Users`
+  MODIFY `Role`
+    ENUM('Admin','Ticketing','Inventory') NOT NULL DEFAULT 'Inventory';
+
+
+
+
+
+
 /*──────────────────────────── Done ───────────────────────────*/

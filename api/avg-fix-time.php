@@ -1,6 +1,6 @@
 <?php
 require __DIR__.'/config.php';   // $pdo
-// average hours between first Defective and first FixedAt
+
 $sql = "
 SELECT ROUND(AVG(TIMESTAMPDIFF(SECOND, d.LoggedAt, f.FixedAt))/3600, 2) AS avgHours
 FROM   ComputerStatusLog d

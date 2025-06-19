@@ -1,0 +1,14 @@
+Edit C:\xampp\mysql\bin\my.ini (or my.cnf):
+On [mysqld]
+
+local_infile       = 1
+secure_file_priv   = ""
+
+
+
+On C:\xampp\php\php.ini
+mysqli.allow_local_infile = On
+
+Restart apache
+SHOW VARIABLES LIKE 'local_infile';        -- should show ON
+SELECT @@mysqli_local_infile;              

@@ -2,20 +2,20 @@
 require __DIR__.'/config.php';
 header('Content-Type: application/json; charset=utf-8');
 
-/* ── reports: defect / available history + who fixed it ───────────── */
+
 $sql = <<<SQL
 SELECT
-  /* NEW — Service Ticket number */
+  
   l.ServiceTicketID,
 
-  /* Existing columns */
+
   DATE(l.LoggedAt)                       AS CheckDate,
   l.RoomID,
   l.PCNumber,
   l.Status,
   l.Issues,
 
-  /* dash when no matching fix */
+
   COALESCE(DATE(f.FixedAt),        '—')  AS FixedOn,
   COALESCE(CONCAT(u2.FirstName,' ',u2.LastName), '—')
                                          AS FixedBy,
@@ -36,9 +36,9 @@ LEFT JOIN Fixes AS f
        LIMIT 1
      )
 
-/* user look-ups */
-LEFT JOIN Users AS u1 ON u1.UserID = l.UserID      -- recorded by
-LEFT JOIN Users AS u2 ON u2.UserID = f.FixedBy     -- fixed by
+
+LEFT JOIN Users AS u1 ON u1.UserID = l.UserID      
+LEFT JOIN Users AS u2 ON u2.UserID = f.FixedBy     
 
 ORDER BY l.LoggedAt DESC;
 SQL;

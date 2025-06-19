@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assets Monitor – Mapua Inventory</title>
+
+  <!-- global palette -->
+  <style>
+    :root{
+      --color-primary:#C8102E; --color-primary-dark:#A10B26;
+      --color-accent:#FFC72C; --color-text:#333; --color-bg:#F5F5F5;
+      --color-white:#FFF;
+    }
+  </style>
+
+  <!-- shared + page styles -->
+  <link rel="stylesheet" href="assets.css" />
+  <link rel="stylesheet" href="rooms.css" />
+
+  <script defer src="assets.js"></script>
+</head>
+<body>
+  <div id="floating-time" class="floating-time"></div>
+
+  <!-- ── Sidebar ───────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="../icons/logo.png" class="logo" alt="Logo" />
+      <h1>Inventory</h1>
+    </div>
+
+    <nav>
+      <ul>
+        <li><a href="index.html">📊 Dashboard</a></li>
+        <li><a href="rooms.html">🏠 Rooms</a></li>
+        <li class="active"><a href="assets.html">💻 Assets</a></li>
+        <li><a href="reports.html">📑 Reports</a></li>
+        <li><a href="settings.html">⚙️ Settings</a></li>
+      </ul>
+    </nav>
+
+    <!-- footer with sign-out only -->
+    <div class="sidebar-footer">
+      <button id="signout-btn">🔒 Sign Out</button>
+    </div>
+
+    </div>
+  </aside>
+
+  <!-- ── Main pane ─────────────────────────────────────────── -->
+  <div class="main-content">
+    <header class="header">
+      <h2>Assets Monitor</h2>
+      <div class="user-menu"><span class="username">…</span></div>
+    </header>
+
+    <main>
+      <section class="room-selector">
+        <label for="room-select">Select Room:</label>
+        <select id="room-select">
+          <option value="">– Choose a room –</option>
+        </select>
+      </section>
+
+      <section id="pc-grid" class="pc-grid"></section>
+    </main>
+  </div>
+
+  <!-- ── Specs / history modal ─────────────────────────────── -->
+  <div id="specModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>PC <span id="specPc"></span> Specs</h3>
+      <table id="specTable"></table>
+
+      <div class="modal-buttons">
+        <button id="prevSpec" class="btn-light">◀ Prev</button>
+        <button id="nextSpec" class="btn-light">Next ▶</button>
+        <button id="specClose" class="btn-primary">Close</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
