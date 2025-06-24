@@ -33,24 +33,27 @@ INSERT INTO `Room` VALUES ('MPO310');
 
 /*──────────────────────── 3. Computers ────────────────────────*/
 CREATE TABLE `Computers` (
-  `RoomID`     VARCHAR(10) NOT NULL,
-  `PCNumber`   CHAR(2)     NOT NULL COMMENT '00–40 = students, 41 = instructor',
-  `Status`     ENUM('Available','In Use','Maintenance','Retired','Defective')
-                 NOT NULL DEFAULT 'Available',
-  `LastUpdated` DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `RoomID`      VARCHAR(10) NOT NULL,
+  `PCNumber`    CHAR(2)     NOT NULL COMMENT '00–40 = students, 41 = instructor',
+  `Status`      ENUM('Working','Defective')
+                   NOT NULL DEFAULT 'Working',
+  `LastUpdated` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`RoomID`,`PCNumber`),
   FOREIGN KEY (`RoomID`) REFERENCES `Room`(`RoomID`)
     ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-/* seed PCs 00–40 + instructor 41 */
+/* seed PCs 00–40 + instructor 41 – now all default to Working */
 INSERT INTO `Computers` (`RoomID`,`PCNumber`)
 SELECT 'MPO310', LPAD(t.t*10+u.u,2,'0')
-FROM (SELECT 0 t UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4) t
-CROSS JOIN (SELECT 0 u UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
-            UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) u
-WHERE (t.t*10+u.u) <= 40;
-INSERT INTO `Computers` VALUES ('MPO310','41','Available',NOW());
+  FROM (SELECT 0 t UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4) t
+ CROSS JOIN (SELECT 0 u UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+             UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) u
+ WHERE (t.t*10+u.u) <= 40;
+
+-- instructor station, explicitly mark as Working
+INSERT INTO `Computers` (`RoomID`,`PCNumber`,`Status`,`LastUpdated`)
+VALUES ('MPO310','41','Working',NOW());
 
 /*──────────────────── 4. ComputerStatusLog ────────────────────*/
 CREATE TABLE `ComputerStatusLog` (
@@ -173,11 +176,12 @@ FROM (SELECT @row:=@row+1 AS seq
 
 INSERT INTO `StatusLog`
   (`RoomID`,`PCNumber`,`CheckDate`,`Status`,`UserID`)
-SELECT 'MPO310',
-       LPAD(n,2,'0'),
-       d.d,
-       'Working',
-       1
+SELECT
+  'MPO310',
+  LPAD(n,2,'0'),
+  d.d,
+  'Working',   -- was 'Available'
+  1
 FROM tmp_days d
 CROSS JOIN (
   SELECT 0 n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL

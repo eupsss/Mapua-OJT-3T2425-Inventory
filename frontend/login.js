@@ -1,49 +1,65 @@
 /* login.js – Mapúa Inventory */
 document.addEventListener('DOMContentLoaded', () => {
-  const form   = document.getElementById('loginForm');
-  const msgBox = document.getElementById('loginMsg');
-  const btn    = form.querySelector('button[type="submit"]');
+  const form       = document.getElementById('loginForm');
+  const msgBox     = document.getElementById('loginMsg');
+  const btn        = form.querySelector('button[type="submit"]');
 
-  /* relative path → api/ */
-  const API_BASE = '../api';
+  // Point this at your Express route, not the old PHP file
+  const API_ENDPOINT = '/api/login';
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    msgBox.textContent = '';                         // clear
+    msgBox.textContent = '';
 
-    const email = document.getElementById('logEmail').value.trim();
-    const pass  = document.getElementById('logPass').value;
+    const emailInput = document.getElementById('logEmail');
+    const passInput  = document.getElementById('logPass');
+    const email      = emailInput.value.trim();
+    const pass       = passInput.value;
 
     if (!email || !pass) {
-      return (msgBox.textContent = 'Both fields are required.');
+      return msgBox.textContent = 'Both fields are required.';
     }
 
-    /* lock UI */
-    btn.disabled = true; btn.textContent = 'Signing in…';
+    // Lock UI
+    btn.disabled     = true;
+    const originalText = btn.textContent;
+    btn.textContent  = 'Signing in…';
 
     try {
-      const res  = await fetch(`${API_BASE}/login.php`, {
-        method : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ email, pass })
+      const res = await fetch(API_ENDPOINT, {
+        method:      'POST',
+        headers:     { 'Content-Type': 'application/json' },
+        credentials: 'include',                     // allow session cookie
+        body:        JSON.stringify({ email, pass })
       });
 
-      const data = await res.json();
-
-      if (!res.ok || data.success === false) {
-        throw new Error(data.error || `HTTP ${res.status}`);
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Server error (${res.status}): ${errText}`);
       }
 
-      /* success → store + go to dashboard */
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error('Unexpected response format from server.');
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || 'Login failed. Please check your credentials.');
+      }
+
       sessionStorage.setItem('user', JSON.stringify(data.user));
       window.location.href = 'index.html';
 
     } catch (err) {
       console.error(err);
-      msgBox.textContent = err.message === 'Failed to fetch'
+      msgBox.textContent = err.message.includes('Failed to fetch')
         ? 'Network error – is the API running?'
         : err.message;
-      btn.disabled = false; btn.textContent = 'Login';
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = originalText;
     }
   });
 });

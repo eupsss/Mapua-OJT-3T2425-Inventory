@@ -1,41 +1,35 @@
-/* register.js – Mapúa Inventory  */
+// register.js – Mapúa Inventory
 document.addEventListener('DOMContentLoaded', () => {
-
-  /* ─── grab elements that really exist on register.html ─── */
   const form   = document.getElementById('regForm');
   const msgBox = document.getElementById('regMsg');
-  if (!form || !msgBox) {
-    console.error('Registration form or message box not found');
-    return;                                   // abort early → no error
-  }
+  if (!form || !msgBox) return console.error('Form or message box not found');
 
-  const btn       = form.querySelector('button[type="submit"]');
-  const API_BASE  = '../api';                 // adjust if path differs
+  const btn      = form.querySelector('button[type="submit"]');
+  const API_BASE = '/api';                // ← absolute path into your Express API
 
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', async e => {
     e.preventDefault();
     msgBox.textContent = '';
 
-    /* collect input values */
-    const fname = document.getElementById('fname').value.trim();
-    const lname = document.getElementById('lname').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const pass  = document.getElementById('pass').value;
+    const fname = form.fname.value.trim();
+    const lname = form.lname.value.trim();
+    const email = form.email.value.trim();
+    const phone = form.phone.value.trim();
+    const pass  = form.pass.value;
 
     if (!fname || !lname || !email || !pass) {
       msgBox.textContent = 'Please fill in all required fields.';
       return;
     }
 
-    /* lock UI */
-    btn.disabled = true; btn.textContent = 'Registering…';
+    btn.disabled = true;
+    btn.textContent = 'Registering…';
 
     try {
-      const res  = await fetch(`${API_BASE}/register.php`, {
-        method : 'POST',
+      const res = await fetch(`${API_BASE}/register`, {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ fname, lname, email, phone, pass })
+        body:    JSON.stringify({ fname, lname, email, phone, pass })
       });
       const data = await res.json();
 
@@ -43,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(data.error || `HTTP ${res.status}`);
       }
 
-      /* success – inform the user or redirect */
       msgBox.textContent = 'Account created! You may now sign in.';
       form.reset();
 
@@ -53,7 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ? 'Network error – is the API running?'
         : err.message;
     } finally {
-      btn.disabled = false; btn.textContent = 'Register';
+      btn.disabled = false;
+      btn.textContent = 'Register';
     }
   });
 });
+  

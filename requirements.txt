@@ -1,14 +1,20 @@
-Edit C:\xampp\mysql\bin\my.ini (or my.cnf):
-On [mysqld]
+Install MYSQL 
 
-local_infile       = 1
-secure_file_priv   = ""
+In MySQL Shell
+\sql
+\connect root@127.0.0.1:3306 
+(this depends on the port you are using for MySQL)
+
+\source "C:\xampp\htdocs\OJT2\MapuaInventory.sql"
+\source "C:\xampp\htdocs\OJT2\computer_assets_126rows_insert.sql"
 
 
 
-On C:\xampp\php\php.ini
-mysqli.allow_local_infile = On
 
-Restart apache
-SHOW VARIABLES LIKE 'local_infile';        -- should show ON
-SELECT @@mysqli_local_infile;              
+
+
+
+
+
+
+
