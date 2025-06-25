@@ -1,305 +1,14 @@
-/* styles.css */
+/* ─── Rooms-only overrides ───────────────────────────────── */
 
-/* Reset & base */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-:root {
-  --color-primary: #C8102E;         /* Mapúan Red */
-  --color-primary-dark: #A10B26;    /* Dark Red */
-  --color-accent: #FFC72C;          /* Gold Accent */
-  --color-text: #333333;            /* Charcoal */
-  --color-bg: #F5F5F5;              /* Light Gray */
-  --color-white: #FFFFFF;           /* White */
-}
-
-body {
-  display: flex;
-  font-family: Arial, sans-serif;
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  min-height: 100vh;
-}
-
-/* Sidebar */
-.sidebar {
-  width: 240px;
-  background-color: #1d181c;
-  color: var(--color-white);
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-/* Logo in sidebar brand */
-.sidebar .brand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: -1.6rem;
-}
-.sidebar .brand .logo {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  margin-right: 1.0rem;
-
-}
-
-
-.sidebar nav ul {
-  list-style: none;
-}
-
-.sidebar nav ul li a {
-  display: flex;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  color: var(--color-white);
-  text-decoration: none;
-  transition: background-color 0.2s ease;
-}
-
-.sidebar nav ul li a:hover,
-.sidebar nav ul li.active a {
-  background-color: var(--color-primary-dark);
-}
-
-.sidebar nav ul li a .icon {
-  display: inline-flex;
-  width: 1.25rem;
-  height: 1.25rem;
-  margin-right: 0.75rem;
-}
-
-/* Main content area */
-.main-content {
-  flex: 1;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Header */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.header h2 {
-  font-size: 1.5rem;
-}
-
-.user-menu {
-  display: flex;
-  align-items: center;
-}
-
-.user-menu .username {
-  margin-right: 0.75rem;
-  font-weight: bold;
-}
-
-.user-menu .avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--color-white);
-}
-
-/* Dashboard cards */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1rem;
-}
-
-.card {
-  background-color: var(--color-white);
-  border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.card h3 {
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
-  color: var(--color-primary);
-}
-
-.card p {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--color-text);
-}
-
-/* Charts section */
-.charts {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.chart-card {
-  background-color: var(--color-white);
-  border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
-}
-
-.chart-card h4 {
-  font-size: 1.125rem;
-  margin-bottom: 0.75rem;
-  color: var(--color-primary);
-}
-
-.chart-container {
-  flex: 1;
-  position: relative;
-}
-
-/* Details/table section */
-.details {
-  margin-top: 2rem;
-}
-
-.details table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--color-white);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.details th,
-.details td {
-  padding: 0.75rem 1rem;
-  text-align: left;
-}
-
-.details th {
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  font-weight: normal;
-}
-
-.details tr:nth-child(even) td {
-  background-color: #fafafa;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .sidebar {
-    position: fixed;
-    left: -240px;
-    transition: left 0.3s ease;
-    z-index: 1000;
-  }
-  .sidebar.open {
-    left: 0;
-  }
-  .main-content {
-    margin-left: 0;
-  }
-  .header .menu-toggle {
-    display: block;
-    cursor: pointer;
-  }
-  .charts {
-    grid-template-columns: 1fr;
-  }
-}
-
-.floating-time {
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  background: var(--color-white);
-  color: var(--color-text);
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.25rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  font-family: monospace;
-  font-size: 0.95rem;
-  text-align: center;
-  line-height: 1.2;
-  z-index: 1000;
-}
-.floating-time .time {
-  display: block;
-  font-size: 1.1rem;
-  font-weight: bold;
-}
-.floating-time .date {
-  display: block;
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
-  color: var(--color-primary-dark);
-}
-
-
-
-
-/* Room selector */
-.room-selector {
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-}
-.room-selector label {
-  margin-right: 0.5rem;
-  font-weight: bold;
-  color: var(--color-primary);
-}
-.room-selector select {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: var(--color-white);
-  color: var(--color-text);
-  transition: border-color 0.2s ease;
-}
-.room-selector select:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-
-
-
+/* 1️⃣  Two-block PC grid with a spacer */
 .pc-grid {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);   /* 8 visual slots */
+  grid-template-columns: repeat(4, 1fr) 5rem repeat(4, 1fr);
+  grid-auto-rows: 120px;
   gap: 2rem;
 }
 
-
-/* Keep internal text/icons normal */
-.pc-card{
-  user-select: none;          /* prevents blue highlight */
-}
-
-/* 2 ▸ Guarantee the modal always sits above every other element      */
-.modal{
-  z-index: 5000;              /* higher than sidebar (1000) & grid */
-}
-/* =========================================================
-   CARD VISUALS (unchanged)
-   ========================================================= */
-
+/* 2️⃣  Card visuals */
 .pc-card {
   background: var(--color-white);
   border: 2px solid transparent;
@@ -307,207 +16,71 @@ body {
   padding: 0.75rem;
   text-align: center;
   cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-}
-.pc-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-.pc-card.selected {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.2);
-}
-
-/* Icon + label */
-.pc-icon {
-  width: 36px;
-  height: 36px;
-  margin-bottom: 0.5rem;
-  transition: transform 0.2s ease;
-}
-.pc-card:hover .pc-icon { transform: scale(1.1); }
-
-.pc-number {
-  display: block;
-  font-size: 0.9rem;
-  font-weight: bold;
-  color: var(--color-text);
-}
-
-/* Status colours */
-.pc-card[data-status="Defective"] { background: #ffe5e5; }
-.pc-card[data-status="Defective"] .pc-number { color: var(--color-primary); }
-
-.pc-card[data-status="Working"]  { background: #e5ffe5; }
-.pc-card[data-status="Working"]  .pc-number { color: #238636; }
-
-/* PC grid ─ 4 columns  ░gap░  4 columns  (total = 9 tracks)  */
-.pc-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr)   /* cols 1-4  (left block) */
-                         5rem              /* col 5    (spacer)     */
-                         repeat(4, 1fr);   /* cols 6-9 (right block)*/
-  gap: 2rem;
-  grid-auto-rows: 120px;                   /* uniform height rows   */
-}
-
-
-/* 2️⃣  Each card expands to fill its grid cell */
-.pc-card {
-  height: 100%;            /* full row-height  */
-  width:  100%;            /* full column-width */
-  display: flex;           /* keep icon + label centered */
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
+.pc-card:hover       { transform: translateY(-4px); box-shadow: 0 4px 8px rgb(0 0 0 / .1); }
+.pc-card.selected    { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(200,16,46,.2); }
+.pc-number           { margin-top: .35rem; font-weight: 600; color: var(--color-text); }
+.pc-icon             { width: 36px; height: 36px; user-select: none; transition: transform .2s; }
+.pc-card:hover .pc-icon { transform: scale(1.1); }
 
-/* 3️⃣  Make sure the icon never stretches the cell   */
-.pc-icon {
-  max-width: 36px;
-  max-height: 36px;
-}
-/* ─── Modal backdrop & centering ─────────────────────────────── */
-.modal {
-  position: fixed;
-  inset: 0;                        /* top:0; right:0; bottom:0; left:0 */
-  background: rgba(0,0,0,0.4);     /* semi-transparent overlay */
+/* Status colours */
+.pc-card[data-status="Working"]  { background: #e5ffe5; }
+.pc-card[data-status="Defective"]{ background: #ffe5e5; }
+.pc-card[data-status="Working"]  .pc-number { color: #238636; }
+.pc-card[data-status="Defective"].pc-number { color: var(--color-primary); }
+
+/* 3️⃣  Room selector */
+.room-selector {
+  margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
-  justify-content: center;
-  z-index: 2000;
 }
-.modal.hidden {
-  display: none;                   /* quick hide */
-}
-
-/* ─── Modal content panel ───────────────────────────────────── */
-.modal-content {
-  background: var(--color-white);
-  border-radius: 8px;
-  padding: 1.5rem;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-  animation: slideDown 0.3s ease;
-}
-@keyframes slideDown {
-  from { transform: translateY(-20px); opacity: 0; }
-  to   { transform: translateY(0);      opacity: 1; }
-}
-
-/* ─── Issues checkboxes ────────────────────────────────────── */
-.issues-list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem 1rem;
-  margin-bottom: 1.25rem;
-}
-.issues-list label {
-  display: flex;
-  align-items: center;
-  font-size: 0.9rem;
-}
-.issues-list input {
-  margin-right: 0.5rem;
-}
-
-/* ─── Buttons ───────────────────────────────────────────────── */
-.modal-buttons {
-  text-align: right;
-}
-.modal-buttons button {
-  margin-left: 0.5rem;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-#defectCancel {
-  background: #ddd;
-  color: #333;
-}
-#defectConfirm {
-  background: var(--color-primary);
-  color: #fff;
-}
-#defectConfirm:hover {
-  background: var(--color-primary-dark);
-}
-
-/* ─── Fix-modal form styling ───────────────────────────── */
-.fix-form .form-group {
-  margin-bottom: 1rem;
-}
-
-.fix-form label {
-  display: block;
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 0.35rem;
-  color: var(--color-text);
-}
-
-.fix-form input[type="date"],
-.fix-form input[list] {
-  width: 100%;
-  padding: 0.55rem 0.75rem;
+.room-selector label  { margin-right: 0.5rem; font-weight: bold; color: var(--color-primary); }
+.room-selector select {
+  padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 0.95rem;
+  background: var(--color-white);
+  color: var(--color-text);
   transition: border-color 0.2s;
 }
+.room-selector select:focus { outline: none; border-color: var(--color-primary); }
 
-.fix-form input:focus {
-  outline: none;
-  border-color: var(--color-primary);
+/* 4️⃣  Modal backdrop & panel */
+.modal          { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: flex;
+                  align-items: center; justify-content: center; z-index: 2000; }
+.modal.hidden   { display: none; }
+.modal-content  { background: var(--color-white); border-radius: 8px; padding: 1.5rem;
+                  width: 90%; max-width: 400px; box-shadow: 0 6px 20px rgba(0,0,0,.2);
+                  animation: slideDown .3s ease; }
+@keyframes slideDown { from {transform:translateY(-20px); opacity:0;}
+                       to   {transform:translateY(0);    opacity:1;} }
+
+/* 5️⃣  Issues & fix-form styling (same as before) */
+.issues-list { display:grid; grid-template-columns:repeat(2,1fr); gap:.5rem 1rem; margin-bottom:1.25rem; }
+.issues-list label { display:flex; align-items:center; font-size:.9rem; }
+.issues-list input { margin-right:.5rem; }
+
+.modal-buttons    { text-align:right; }
+.modal-buttons button { margin-left:.5rem; padding:.5rem 1rem; border:none; border-radius:4px;
+                        cursor:pointer; font-size:.9rem; }
+#defectCancel, #fixCancel { background:#ddd; color:#333; }
+#defectConfirm, .btn-primary { background:var(--color-primary); color:#fff; }
+#defectConfirm:hover, .btn-primary:hover { background:var(--color-primary-dark); }
+
+.fix-form .form-group { margin-bottom:1rem; }
+.fix-form label       { display:block; font-size:.9rem; font-weight:600; margin-bottom:.35rem; color:var(--color-text); }
+.fix-form input[type="datetime-local"],
+.fix-form input[list] { width:100%; padding:.55rem .75rem; border:1px solid #ccc; border-radius:4px;
+                        font-size:.95rem; transition:border-color .2s; }
+.fix-form input:focus { outline:none; border-color:var(--color-primary); }
+
+/* 6️⃣  Make everything stack gracefully on narrow screens */
+@media (max-width: 768px) {
+  .pc-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
 }
-
-/* nicer buttons (reuse elsewhere if you like) */
-.btn-light {
-  background: #eee;
-  color: #333;
-}
-
-.btn-primary {
-  background: var(--color-primary);
-  color: #fff;
-}
-
-.btn-light,
-.btn-primary {
-  padding: 0.55rem 1.25rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn-primary:hover {
-  background: var(--color-primary-dark);
-}
-/* The base look comes from rooms.css – this file just adds minor tweaks */
-
-.pc-grid {
-  display:grid;
-  grid-template-columns:repeat(4,1fr) 5rem repeat(4,1fr);
-  gap:2rem;
-  grid-auto-rows:120px;
-}
-.pc-card{
-  background:var(--color-white);
-  border:2px solid transparent;
-  border-radius:8px;
-  padding:.75rem;
-  text-align:center;
-  cursor:pointer;
-  transition:transform .2s, box-shadow .2s, border-color .2s;
-  display:flex;flex-direction:column;justify-content:center;align-items:center;
-}
-.pc-card:hover{transform:translateY(-4px);box-shadow:0 4px 8px rgb(0 0 0 / .1);}
-.pc-number{margin-top:.35rem;font-weight:600;color:var(--color-text);}
-.pc-icon{max-width:36px;max-height:36px;user-select:none;}
-
-/* modal inherits rooms.css */
-

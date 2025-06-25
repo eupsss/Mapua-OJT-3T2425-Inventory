@@ -3,27 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Assets Monitor – Mapua Inventory</title>
+  <title>Assets Monitor – Mapúa Inventory</title>
 
-  <!-- global palette -->
-  <style>
-    :root{
-      --color-primary:#C8102E; --color-primary-dark:#A10B26;
-      --color-accent:#FFC72C; --color-text:#333; --color-bg:#F5F5F5;
-      --color-white:#FFF;
-    }
-  </style>
-
-  <!-- shared + page styles -->
+  <!-- global look, then page-level tweaks -->
+  <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="assets.css" />
-  <link rel="stylesheet" href="rooms.css" />
 
   <script defer src="assets.js"></script>
 </head>
 <body>
+  <!-- floating clock -->
   <div id="floating-time" class="floating-time"></div>
 
-  <!-- ── Sidebar ───────────────────────────────────────────── -->
+  <!-- ─────────── SIDEBAR ─────────── -->
   <aside class="sidebar">
     <div class="brand">
       <img src="../icons/logo.png" class="logo" alt="Logo" />
@@ -40,44 +32,104 @@
       </ul>
     </nav>
 
-    <!-- footer with sign-out only -->
     <div class="sidebar-footer">
       <button id="signout-btn">🔒 Sign Out</button>
     </div>
-
-    </div>
   </aside>
 
-  <!-- ── Main pane ─────────────────────────────────────────── -->
+  <!-- ─────────── MAIN PANE ─────────── -->
   <div class="main-content">
     <header class="header">
       <h2>Assets Monitor</h2>
       <div class="user-menu"><span class="username">…</span></div>
     </header>
 
-    <main>
-      <section class="room-selector">
-        <label for="room-select">Select Room:</label>
-        <select id="room-select">
-          <option value="">– Choose a room –</option>
-        </select>
-      </section>
+    <!-- Room selector -->
+    <section class="room-selector">
+      <label for="room-select">Select Room:</label>
+      <select id="room-select">
+        <option value="">– Choose a room –</option>
+      </select>
+    </section>
 
-      <section id="pc-grid" class="pc-grid"></section>
-    </main>
+    <!-- PC grid -->
+    <section id="pc-grid" class="pc-grid"></section>
   </div>
 
-  <!-- ── Specs / history modal ─────────────────────────────── -->
+  <!-- ───────── SPECS / HISTORY MODAL ───────── -->
   <div id="specModal" class="modal hidden">
     <div class="modal-content">
       <h3>PC <span id="specPc"></span> Specs</h3>
       <table id="specTable"></table>
 
       <div class="modal-buttons">
-        <button id="prevSpec" class="btn-light">◀ Prev</button>
-        <button id="nextSpec" class="btn-light">Next ▶</button>
+        <button id="prevSpec"  class="btn-light">◀ Prev</button>
+        <button id="nextSpec"  class="btn-light">Next ▶</button>
+        <span style="flex:1"></span>
+        <button id="specAdd"   class="btn-light">➕ New</button>
+        <button id="specEdit"  class="btn-light">✏️ Edit</button>
         <button id="specClose" class="btn-primary">Close</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ───────── ADD / EDIT ASSET MODAL ───────── -->
+  <div id="editModal" class="modal hidden">
+    <div class="modal-content">
+      <h3 id="editTitle">Add PC</h3>
+
+      <form id="editForm" class="fix-form">
+        <div class="form-group">
+          <label for="efRoom">Room ID</label>
+          <input id="efRoom" name="RoomID" required readonly />
+        </div>
+
+        <div class="form-group">
+          <label for="efPC">PC Number (00-40)</label>
+          <input id="efPC" name="PCNumber" required maxlength="2" />
+        </div>
+
+        <div class="form-group">
+          <label for="efInstalled">Installed At</label>
+          <input type="date" id="efInstalled" name="InstalledAt" required />
+        </div>
+
+        <div class="form-group">
+          <label for="efMake">Make / Model</label>
+          <input id="efMake" name="MakeModel" required />
+        </div>
+
+        <div class="form-group">
+          <label for="efSerial">Serial #</label>
+          <input id="efSerial" name="SerialNumber" required />
+        </div>
+
+        <!-- NEW hardware-spec fields -->
+        <div class="form-group">
+          <label for="efCPU">CPU</label>
+          <input id="efCPU" name="CPU" />
+        </div>
+
+        <div class="form-group">
+          <label for="efGPU">GPU</label>
+          <input id="efGPU" name="GPU" />
+        </div>
+
+        <div class="form-group">
+          <label for="efRAM">RAM (GB)</label>
+          <input id="efRAM" name="RAM_GB" type="number" min="1" />
+        </div>
+
+        <div class="form-group">
+          <label for="efStorage">Storage (GB)</label>
+          <input id="efStorage" name="Storage_GB" type="number" min="1" />
+        </div>
+
+        <div class="modal-buttons">
+          <button type="button" id="editCancel" class="btn-light">Cancel</button>
+          <button type="submit"               class="btn-primary">Save</button>
+        </div>
+      </form>
     </div>
   </div>
 </body>

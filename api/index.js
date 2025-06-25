@@ -36,7 +36,7 @@ import pcs            from './routes/pcs.js';
 import fix            from './routes/fix.js';
 import assetsRouter   from './routes/assets.js';
 import reportsRouter  from './routes/reports.js';
-
+import computerAssets from './routes/computerAssets.js';
 
 // ────────────────────────────────────────────────────────────────
 // 3️⃣  Create Express app & middleware
@@ -76,6 +76,7 @@ app.use('/api/pcs',              pcs);
 app.use('/api/fix',              fix);
 app.use('/api/assets',           assetsRouter);
 app.use('/api/reports',          reportsRouter);
+app.use('/api/computer-assets',          computerAssets);
 
 // ────────────────────────────────────────────────────────────────
 // 6️⃣  Catch-all JSON 404 for API

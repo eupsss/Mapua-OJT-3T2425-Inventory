@@ -1,117 +1,286 @@
-/* styles.css — enlarged chart cards */
+/* styles.css — unified layout with rooms.css sidebar */
 
-/* Reset & Base */
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --color-primary:#C8102E;
-  --color-primary-dark:#A10B26;
-  --color-accent:#FFC72C;
-  --color-text:#333;
-  --color-bg:#F5F5F5;
-  --color-white:#FFF;
+/* ─── Reset & Base ───────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
-body{
-  display:flex;
-  font-family:"Segoe UI",Arial,Helvetica,sans-serif;
-  background:var(--color-bg);
-  color:var(--color-text);
-  min-height:100vh;
-  font-size:14px;      /* larger base text */
-  line-height:1.45;    /* more breathing room */
+:root {
+  --color-primary: #C8102E;       /* Mapúan Red */
+  --color-primary-dark: #A10B26;  /* Dark Red */
+  --color-accent: #FFC72C;        /* Gold Accent */
+  --color-text: #333333;          /* Charcoal */
+  --color-bg: #F5F5F5;            /* Light Gray */
+  --color-white: #FFFFFF;         /* White */
+}
+body {
+  display: flex;
+  font-family: Arial, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
-/* Sidebar (unchanged) */
-.sidebar{width:240px;background:#1d181c;color:var(--color-white);display:flex;flex-direction:column;min-height:100vh}
-.sidebar-footer{margin-top:auto;padding:1rem}
-#signout-btn{width:100%;background:transparent;border:none;color:#fff;font-size:1rem;text-align:left;cursor:pointer;display:flex;gap:.5rem;padding:.5rem;border-radius:4px;transition:background .2s}
-#signout-btn:hover{background:rgba(255,255,255,.1)}
-.sidebar .brand{display:flex;align-items:center;justify-content:center;margin-bottom:2rem}
-.sidebar .brand .logo{width:32px;height:32px;margin-right:1rem;object-fit:contain}
-.sidebar nav ul{list-style:none}
-.sidebar nav ul li a{display:flex;align-items:center;padding:.75rem 1rem;color:#fff;text-decoration:none;transition:background .2s}
-.sidebar nav ul li a:hover,.sidebar nav ul li.active a{background:var(--color-primary-dark)}
-.sidebar nav ul li a .icon{margin-right:.75rem}
+/* ─── Sidebar (from rooms.css) ───────────────────────────────── */
+.sidebar {
+  width: 240px;
+  background-color: #1d181c;
+  color: var(--color-white);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.sidebar .brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -1.6rem;
+  margin-bottom: 2rem;
+}
+.sidebar .brand .logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  margin-right: 1rem;
+}
+.sidebar nav ul {
+  list-style: none;
+}
+.sidebar nav ul li a {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  color: var(--color-white);
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+.sidebar nav ul li a:hover,
+.sidebar nav ul li.active a {
+  background-color: var(--color-primary-dark);
+}
+.sidebar nav ul li a .icon {
+  display: inline-flex;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: 0.75rem;
+}
 
-/* Main */
-.main-content{flex:1;display:flex;flex-direction:column;padding:1.5rem;height:100vh;overflow-y:auto}
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
-.header h2{font-size:1.5rem}
-.username{font-weight:bold}
+/* Sidebar footer & sign-out/export buttons */
+/* ─── Sidebar footer buttons ───────────────────────────────── */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
-/* Filters */
-.filters{display:none;}
-#date-filter{padding:.4rem;border:1px solid #ccc;border-radius:4px;font-size:1rem}
+.sidebar-footer .export-btn,
+.sidebar-footer #signout-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 0.6rem 0;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;      /* for export-link */
+  border: none;               /* for signout-btn */
+  transition: background 0.2s ease;
+}
 
-/* KPI Cards */
-.cards{
+/* Export PDF button (green) */
+.sidebar-footer .export-btn {
+  background: #238636;
+  color: #fff;
+}
+.sidebar-footer .export-btn:hover {
+  background: #2ea043;
+}
+
+/* Sign Out button (transparent → light overlay) */
+.sidebar-footer #signout-btn {
+  background: transparent;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.sidebar-footer #signout-btn:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+
+/* ─── Main Content ───────────────────────────────────────────── */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  height: 100vh;
+  overflow-y: auto;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.header h2 {
+  font-size: 1.5rem;
+}
+.username {
+  font-weight: bold;
+}
+
+/* ─── Filters ───────────────────────────────────────────────── */
+.filters {
+  display: none;
+}
+#date-filter {
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+/* ─── KPI Cards ──────────────────────────────────────────────── */
+.cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);   /* ← exactly 2 columns */
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 1rem;
   margin-bottom: 1.75rem;
 }
-
-.card{background:#fff;border-radius:8px;padding:1rem;box-shadow:0 2px 4px rgba(0,0,0,.1);text-align:center}
-.card h3{
-  font-size:1.05rem;
-  margin-bottom:.4rem;
-  font-weight:600;
-  color:var(--color-primary);
+.card {
+  background: var(--color-white);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
-.card p{
-  font-size:1.8rem;
-  font-weight:700;
+.card h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-primary);
+}
+.card p {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-text);
 }
 
-/* Charts */
-.charts{
+/* ─── Charts ────────────────────────────────────────────────── */
+.charts {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);   /* ← exactly 2 columns */
+    grid-template-columns: repeat(2, 1fr) !important;
   gap: 1.5rem;
-  grid-auto-rows: 360px;                   /* keep nice height */
+  margin-top: 2rem;
+}
+.chart-card {
+  background: var(--color-white);
+  border-radius: 8px;
+  padding: 1rem 0.5rem 0.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+.chart-card h4 {
+  margin: 0 0 0.7rem;
+  color: var(--color-primary);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.chart-card canvas {
+  width: 100%!important;
+  aspect-ratio: 4 / 3;
+  height: auto!important;
+  max-height: 280px;
 }
 
-.chart-card{
-  background:#fff;
-  border-radius:8px;
-  padding:1rem 1rem 0.5rem; /* trim bottom padding */
-  box-shadow:0 2px 6px rgba(0,0,0,.1);
-  display:flex;
-  flex-direction:column;
-  height:100%;
-  overflow:hidden;           /* clip overflowing canvas */
+/* ─── Floating Clock ───────────────────────────────────────── */
+.floating-time {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: var(--color-white);
+  color: var(--color-text);
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-family: monospace;
+  font-size: 0.95rem;
+  text-align: center;
+  line-height: 1.2;
+  z-index: 1000;
 }
-.chart-card h4{
-  margin:0 0 .7rem;
-  color:var(--color-primary);
-  font-size:1.15rem;
-  font-weight:600;
+.floating-time .time {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: bold;
 }
-.chart-card canvas{
-  width:100%!important;
-  height:auto!important;          /* let Chart.js decide natural height */
-  aspect-ratio: 4 / 3;            /* keep proportional, avoids stretch */
-  max-height:280px;               /* cap if data gets too tall */
+.floating-time .date {
+  display: block;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  color: var(--color-primary-dark);
 }
 
-/* Floating clock */
-.floating-time{position:fixed;bottom:1rem;right:1rem;background:#fff;color:var(--color-text);padding:.5rem .75rem;border-radius:4px;box-shadow:0 2px 4px rgba(0,0,0,.1);font-family:monospace;font-size:.95rem;text-align:center;line-height:1.2;z-index:1000}
-.floating-time .time{display:block;font-size:1.2rem;font-weight:bold}
-.floating-time .date{display:block;font-size:.85rem;margin-top:.25rem;color:var(--color-primary-dark)}
+/* ─── Room Selector ─────────────────────────────────────────── */
+.room-selector {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+.room-selector label {
+  margin-right: 0.5rem;
+  font-weight: bold;
+  color: var(--color-primary);
+}
+.room-selector select {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: var(--color-white);
+  color: var(--color-text);
+  transition: border-color 0.2s;
+}
+.room-selector select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
 
-/* Responsive tweaks */
-@media (max-width: 768px){
-  .charts{ grid-template-columns: 1fr; }
-  .cards { grid-template-columns: 1fr; }
+/* ─── Responsive Tweaks ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: -240px;
+    transition: left 0.3s ease;
+    z-index: 1000;
+  }
+  .sidebar.open {
+    left: 0;
+  }
+  .main-content {
+    margin-left: 0;
+  }
+  .header .menu-toggle {
+    display: block;
+    cursor: pointer;
+  }
+  .charts {
+    grid-template-columns: 1fr;
+  }
+  .cards {
+    grid-template-columns: 1fr;
+  }
 }
-/* export button — re-uses your green accent */
-.export-btn{
-  display:block;                   /* full-width like the sign-out button */
-  background:#238636;
-  color:#fff;
-  text-align:center;
-  padding:8px 0;
-  border-radius:4px;
-  text-decoration:none;
-  margin-bottom:8px;               /* keeps a small gap above Sign Out */
-}
-.export-btn:hover{background:#2ea043;}

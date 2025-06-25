@@ -1,162 +1,172 @@
-// assets.js – grid + modal (Working / Needs-Replacement / Defective)
+/*───────────────────────────────────────────────────────────────
+  assets.js  –  CRUD grid (PC 00-40) with Add/Edit inside specs modal
+───────────────────────────────────────────────────────────────*/
 console.log('▶ assets.js loaded');
+const API_BASE = '../api/computer-assets';
 
-const API_BASE = '../api';   // <- point at your Express API root
-
-// 1️⃣ login guard
-const user = JSON.parse(sessionStorage.getItem('user'));
-if (!user) {
-  alert('Access denied – please log in.');
-  location.href = 'login.html';
-}
-
-// 2️⃣ helpers
+/* helpers */
 const $ = (q, c = document) => c.querySelector(q);
-const posFor = pc => {
-  const n = +pc;
-  if (n === 0) return { row: 1, col: 9 };
-  const r   = Math.ceil(n / 8) + 1;
-  const idx = (n - 1) % 8;
-  return { row: r, col: idx < 4 ? 9 - idx : 8 - idx };
+const posFor = n => {
+  n = +n;
+  if (n === 0) return { row: 1, col: 9 };                // instructor
+  const row = Math.ceil(n / 8) + 1,
+        idx = (n - 1) % 8;
+  return { row, col: idx < 4 ? 9 - idx : 8 - idx };      // mirrored 4-gap-4
 };
+const friendly = (s, t) =>
+  s === 'Defective' ? 'Defective'
+                    : (Date.now() - Date.parse(t)) / 3.15576e10 >= 5
+                      ? 'Needs Replacement'
+                      : 'Working';
+const iconFor = s =>
+  s === 'Defective'         ? '../icons/defective.png'
+  : s === 'Needs Replacement'? '../icons/warning.png'
+  : '../icons/working.png';
 
-// 3️⃣ DOM refs
-let roomSel, grid;
-const specModal = $('#specModal');
+/* DOM refs */
+const roomSel   = $('#room-select');
+const grid      = $('#pc-grid');
+const userSpan  = $('.username');
+const signout   = $('#signout-btn');
+
+/* specs modal */
+const specM     = $('#specModal');
 const specPc    = $('#specPc');
 const specTbl   = $('#specTable');
 const btnPrev   = $('#prevSpec');
 const btnNext   = $('#nextSpec');
-$('#specClose').onclick = () => specModal.classList.add('hidden');
+const btnAdd    = $('#specAdd');
+const btnEdit   = $('#specEdit');
+$('#specClose').onclick = () => specM.classList.add('hidden');
 
-// 4️⃣ modal state
-let historyRows = [], cursorIdx = 0;
+/* edit modal */
+const editM   = $('#editModal');
+const editF   = $('#editForm');
+const editH   = $('#editTitle');
+$('#editCancel').onclick = () => editM.classList.add('hidden');
 
-// ─── status helpers ──────────────────────────────────────────────
-function friendlyStatus(rawStatus, installedAt) {
-  if (rawStatus === 'Defective') return 'Defective';
-  const age = (Date.now() - Date.parse(installedAt)) / 3.15576e10;
-  return age >= 5 ? 'Needs Replacement' : 'Working';
-}
+/* auth check */
+const user = JSON.parse(sessionStorage.getItem('user'));
+if (!user) location.href = 'login.html';
+userSpan.textContent = user.name;
 
-function statusIcon(label) {
-  if (label === 'Defective')         return '../icons/defective.png';
-  if (label === 'Needs Replacement') return '../icons/warning.png';
-  return '../icons/working.png';
-}
+/* state */
+let selCard = null, historyRows = [], cursor = 0;
 
-// ─── modal render ────────────────────────────────────────────────
-function renderModal() {
-  const spec  = historyRows[cursorIdx];
-  const label = friendlyStatus(spec.Status, spec.InstalledAt);
+/* grid loader */
+/* ─── grid loader (dedups by PCNumber) ───────────────────── */
+async function loadGrid() {
+  if (!roomSel.value) return;
+  grid.textContent = 'Loading…';
 
-  specTbl.innerHTML = `
-    <tr><td><strong>Status</strong></td><td>${label}</td></tr>
-    <tr><td>Installed</td><td>${spec.InstalledAt}</td></tr>
-    ${spec.RetiredAt ? `<tr><td>Retired</td><td>${spec.RetiredAt}</td></tr>` : ''}
-    <tr><td>Make / Model</td><td>${spec.MakeModel}</td></tr>
-    <tr><td>Serial No.</td><td>${spec.SerialNumber}</td></tr>
-    <tr><td>CPU</td><td>${spec.CPU}</td></tr>
-    <tr><td>GPU</td><td>${spec.GPU}</td></tr>
-    <tr><td>RAM (GB)</td><td>${spec.RAM_GB}</td></tr>
-    <tr><td>Storage (GB)</td><td>${spec.Storage_GB}</td></tr>
-    <tr><td>Monitor</td><td>${spec.MonitorModel} (${spec.MonitorSerial})</td></tr>
-    <tr><td>UPS</td><td>${spec.UPSModel} (${spec.UPSSerial})</td></tr>
-  `;
+  /* 1. grab rows from the API */
+  const rows = await fetch(`${API_BASE}?room=${roomSel.value}`).then(r => r.json());
 
-  btnPrev.disabled = cursorIdx >= historyRows.length - 1;
-  btnNext.disabled = cursorIdx === 0;
-}
-
-btnPrev.onclick = () => {
-  if (cursorIdx < historyRows.length - 1) {
-    cursorIdx++;
-    renderModal();
-  }
-};
-btnNext.onclick = () => {
-  if (cursorIdx > 0) {
-    cursorIdx--;
-    renderModal();
-  }
-};
-
-// ─── modal opener ───────────────────────────────────────────────
-function openModal(pcNum) {
-  fetch(`${API_BASE}/assets?room=${roomSel.value}&history=1&pc=${pcNum}`)
-    .then(r => r.json())
-    .then(rows => {
-      historyRows = rows;      // newest → oldest
-      cursorIdx   = 0;
-      specPc.textContent = pcNum;
-      renderModal();
-      specModal.classList.remove('hidden');
-    })
-    .catch(err => {
-      console.error(err);
-      alert('No history for this PC');
-    });
-}
-
-// ─── grid builder ───────────────────────────────────────────────
-function buildGrid(pcs) {
-  grid.innerHTML = '';
-  pcs
-    .filter(p => +p.PCNumber <= 40)                  // hide instructor 41+
-    .sort((a, b) => a.PCNumber - b.PCNumber)
-    .forEach(p => {
-      const label = friendlyStatus(p.Status, p.InstalledAt);
-      const icon  = statusIcon(label);
-
-      const card = document.createElement('div');
-      card.className       = 'pc-card';
-      card.dataset.status  = label;
-      card.innerHTML       = `<img src="${icon}" class="pc-icon"><span class="pc-number">${p.PCNumber}</span>`;
-      const pos            = posFor(p.PCNumber);
-      card.style.gridRow   = pos.row;
-      card.style.gridColumn= pos.col;
-      card.onclick         = () => openModal(p.PCNumber);
-      grid.appendChild(card);
-    });
-}
-
-// ─── init on DOMContentLoaded ───────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  // sign-out
-  $('#signout-btn').addEventListener('click', () => {
-    sessionStorage.removeItem('user');
-    location.href = 'login.html';
+  /* 2. keep only the *latest* row per PCNumber */
+  const latestByPc = {};
+  rows.forEach(r => {
+    const key = r.PCNumber;
+    if (!latestByPc[key] ||
+        new Date(r.InstalledAt) > new Date(latestByPc[key].InstalledAt)) {
+      latestByPc[key] = r;
+    }
   });
+  const pcs = Object.values(latestByPc)          // ← 1 row per PC
+                     .filter(r => +r.PCNumber <= 40)
+                     .sort((a, b) => a.PCNumber - b.PCNumber);
 
-  $('.username').textContent = user.name;
-  roomSel = $('#room-select');
-  grid    = $('#pc-grid');
+  /* 3. rebuild the grid */
+  grid.innerHTML = '';
+  selCard = null;
 
-  // load rooms dropdown
-  fetch(`${API_BASE}/rooms`)
-    .then(r => r.json())
-    .then(rooms => {
-      rooms.forEach(rm => {
-        const o = document.createElement('option');
-        o.value = o.textContent = rm.RoomID;
-        roomSel.appendChild(o);
-      });
-      if (rooms[0]) {
-        roomSel.value = rooms[0].RoomID;
-        loadGrid();
-      }
-    });
+  pcs.forEach(r => {
+    const stat = friendly(r.Status, r.InstalledAt);
+    const card = document.createElement('div');
+    card.className  = 'pc-card';
+    card.dataset.id = r.AssetID;
+    card.dataset.pc = r.PCNumber;
+    card.innerHTML  =
+      `<img src="${iconFor(stat)}" class="pc-icon">
+       <span class="pc-number">${r.PCNumber}</span>`;
 
-  roomSel.onchange = loadGrid;
+    const { row, col } = posFor(r.PCNumber);
+    card.style.gridRow    = row;
+    card.style.gridColumn = col;
 
-  function loadGrid() {
-    grid.innerHTML = 'Loading…';
-    fetch(`${API_BASE}/assets?room=${roomSel.value}`)
-      .then(r => r.json())
-      .then(buildGrid)
-      .catch(err => {
-        console.error(err);
-        grid.innerHTML = 'Error';
-      });
+    card.onclick = () => { select(card); openHistory(r.PCNumber); };
+    grid.appendChild(card);
+  });
+}
+
+function select(c) { if (selCard) selCard.classList.remove('selected'); selCard = c; c.classList.add('selected'); }
+
+/* specs / history modal */
+async function openHistory(pc) {
+  historyRows = await fetch(`${API_BASE}?room=${roomSel.value}&pc=${pc}&history=1`).then(r => r.json());
+  cursor = 0; renderHistory(); specM.classList.remove('hidden');
+}
+function renderHistory() {
+  const r = historyRows[cursor];
+  specPc.textContent = r.PCNumber;
+  specTbl.innerHTML = `
+    <tr><td><strong>Status</strong></td><td>${friendly(r.Status, r.InstalledAt)}</td></tr>
+    <tr><td>Installed</td><td>${r.InstalledAt}</td></tr>
+    ${r.RetiredAt ? `<tr><td>Retired</td><td>${r.RetiredAt}</td></tr>` : ''}
+    <tr><td>Make / Model</td><td>${r.MakeModel}</td></tr>
+    <tr><td>Serial #</td><td>${r.SerialNumber}</td></tr>
+    <tr><td>CPU</td><td>${r.CPU || '-'}</td></tr>
+    <tr><td>GPU</td><td>${r.GPU || '-'}</td></tr>
+    <tr><td>RAM (GB)</td><td>${r.RAM_GB || '-'}</td></tr>
+    <tr><td>Storage (GB)</td><td>${r.Storage_GB || '-'}</td></tr>`;
+  btnPrev.disabled = cursor >= historyRows.length - 1;
+  btnNext.disabled = cursor === 0;
+}
+btnPrev.onclick = () => { if (cursor < historyRows.length - 1) { cursor++; renderHistory(); } };
+btnNext.onclick = () => { if (cursor > 0) { cursor--; renderHistory(); } };
+
+/* open edit modal */
+function openEdit(mode) {
+  editM.dataset.mode = mode;
+  editH.textContent = mode === 'create' ? 'Add PC' : 'Edit PC';
+  editF.reset(); $('#efRoom').value = roomSel.value;
+
+  if (mode === 'update') {
+    const r = historyRows[0];
+    $('#efPC').value        = r.PCNumber;
+    $('#efInstalled').value = r.InstalledAt.slice(0, 10);
+    $('#efMake').value      = r.MakeModel;
+    $('#efSerial').value    = r.SerialNumber;
+    $('#efCPU').value       = r.CPU        || '';
+    $('#efGPU').value       = r.GPU        || '';
+    $('#efRAM').value       = r.RAM_GB     || '';
+    $('#efStorage').value   = r.Storage_GB || '';
   }
-});
+  $('#efPC').readOnly = false;
+  editM.classList.remove('hidden');
+}
+btnAdd.onclick  = () => openEdit('create');
+btnEdit.onclick = () => openEdit('update');
+
+/* submit add / edit */
+editF.onsubmit = async e => {
+  e.preventDefault();
+  const data   = Object.fromEntries(new FormData(editF));
+  const mode   = editM.dataset.mode;
+  const url    = mode === 'update' ? `${API_BASE}/${selCard.dataset.id}` : API_BASE;
+  const method = mode === 'update' ? 'PUT' : 'POST';
+  await fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+  editM.classList.add('hidden'); specM.classList.add('hidden'); await loadGrid();
+};
+
+/* sign-out */
+signout.onclick = () => { sessionStorage.removeItem('user'); location.href = 'login.html'; };
+
+/* bootstrap */
+roomSel.onchange = loadGrid;
+(async () => {
+  const rooms = await fetch('../api/rooms').then(r => r.json());
+  rooms.forEach(r => {
+    const o=document.createElement('option'); o.value=o.textContent=r.RoomID; roomSel.appendChild(o);
+  });
+  if (rooms[0]) { roomSel.value = rooms[0].RoomID; await loadGrid(); }
+})();

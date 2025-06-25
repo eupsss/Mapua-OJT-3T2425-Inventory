@@ -135,3 +135,43 @@
 .main-content{
   margin-left:240px;                  /* override earlier 20 px */
 }
+
+/* ─── Edit-PC modal polish ────────────────────────────────── */
+#editModal .modal-content {
+  max-width: 420px;              /* narrower dialog */
+}
+
+#editModal .form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.75rem;        /* consistent spacing */
+}
+
+#editModal .form-group label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+  color: var(--color-text);
+}
+
+#editModal .form-group input {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+
+#editModal .form-group input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* button row */
+#editModal .modal-buttons {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
