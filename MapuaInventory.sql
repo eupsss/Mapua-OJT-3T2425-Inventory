@@ -260,6 +260,16 @@ ALTER TABLE `Users`
     ENUM('Admin','Ticketing','Inventory') NOT NULL DEFAULT 'Inventory';
 
 
+CREATE OR REPLACE VIEW v_DefectsTrend AS
+SELECT
+  CheckDate AS d,
+  COUNT(*)  AS defects
+FROM ComputerStatusLog
+WHERE Status = 'Defective'
+GROUP BY CheckDate
+ORDER BY CheckDate;
+
+
 
 
 

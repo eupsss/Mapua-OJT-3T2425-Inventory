@@ -1,26 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>Mapúa Inventory Dashboard</title>
 
-  <!-- External CSS -->
-  <link rel="stylesheet" href="styles.css">
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css" />
 
-
-  <!-- Dashboard JS -->
-   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="script.js" defer></script>
-
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Dashboard logic -->
+  <script src="script.js" defer></script>
 </head>
+
 <body>
+  <!-- floating clock -->
   <div id="floating-time" class="floating-time">00:00:00</div>
+
+  <!-- side-bar -->
   <aside class="sidebar">
     <div class="brand">
-      <img src="../icons/logo.png" alt="Logo" class="logo">
+      <img src="../icons/logo.png" alt="Logo" class="logo" />
       <h1>Inventory</h1>
     </div>
+
     <nav>
       <ul>
         <li class="active"><a href="index.html">📊 Dashboard</a></li>
@@ -30,12 +34,14 @@
         <li><a href="settings.html">⚙️ Settings</a></li>
       </ul>
     </nav>
+
     <div class="sidebar-footer">
       <a href="export.html" class="export-btn">📥 Export PDF</a>
       <button id="signout-btn">🔒 Sign Out</button>
     </div>
   </aside>
 
+  <!-- main -->
   <div class="main-content">
     <header class="header">
       <h2>Dashboard</h2>
@@ -43,60 +49,34 @@
     </header>
 
     <main>
-      <!-- Filters -->
+      <!-- date filter -->
       <section class="filters">
         <label for="date-filter">Select Date:</label>
-        <input type="date" id="date-filter">
+        <input type="date" id="date-filter" />
       </section>
 
-      <!-- KPI Cards -->
+      <!-- KPI cards -->
       <section class="cards">
-        <div class="card">
-          <h3>Total PCs</h3>
-          <p id="total-pcs">0</p>
-        </div>
-        <div class="card">
-          <h3>Working PCs</h3>
-          <p id="working-pcs">0</p>
-        </div>
-        <div class="card">
-          <h3>Defective PCs</h3>
-          <p id="defective-pcs">0</p>
-        </div>
-        <div class="card">
-          <h3>Checked Today</h3>
-          <p id="checked-today">0</p>
-        </div>
+        <div class="card"><h3>Total PCs</h3><p id="total-pcs">0</p></div>
+        <div class="card"><h3>Working PCs</h3><p id="working-pcs">0</p></div>
+        <div class="card"><h3>Defective PCs</h3><p id="defective-pcs">0</p></div>
+        <div class="card"><h3>Checked Today</h3><p id="checked-today">0</p></div>
       </section>
 
-      <!-- Graphs -->
+      <!-- Charts grid -->
       <section class="charts">
-        <div class="chart-card">
-          <h4>PC Status Breakdown</h4>
-          <canvas id="statusChart"></canvas>
-        </div>
-        <div class="chart-card">
-          <h4>Checks Over Time</h4>
-          <canvas id="checkChart"></canvas>
-        </div>
-        <div class="chart-card">
-          <h4>Average Time to Fix</h4>
-          <canvas id="avgFixTimeChart"></canvas>
-        </div>
-        <div class="chart-card">
-          <h4>Defects by Room</h4>
-          <canvas id="defectsByRoomChart"></canvas>
-        </div>
-        <div class="chart-card">
-          <h4>Issues Breakdown</h4>
-          <canvas id="issuesBreakdownChart"></canvas>
-        </div>
-        <div class="chart-card">
-          <h4>Fixes Over Time</h4>
-          <canvas id="fixesOverTimeChart"></canvas>
-        </div>
-      </section>
+        <div class="chart-card"><h4>PC Status Breakdown</h4><canvas id="statusChart"></canvas></div>
+        <div class="chart-card"><h4>Checks Over Time</h4><canvas id="checkChart"></canvas></div>
+        <div class="chart-card"><h4>Average Time to Fix</h4><canvas id="avgFixTimeChart"></canvas></div>
+        <div class="chart-card"><h4>Defects by Room</h4><canvas id="defectsByRoomChart"></canvas></div>
+        <div class="chart-card"><h4>Issues Breakdown</h4><canvas id="issuesBreakdownChart"></canvas></div>
+        <div class="chart-card"><h4>Fixes Over Time</h4><canvas id="fixesOverTimeChart"></canvas></div>
 
+        <!-- NEW charts -->
+        <div class="chart-card"><h4>Daily Defects Trend</h4><canvas id="defectsTrendChart"></canvas></div>
+        <div class="chart-card"><h4>Issue Mix by Month</h4><canvas id="issuesOverTimeChart"></canvas></div>
+        <div class="chart-card"><h4>Room Uptime Ranking</h4><canvas id="roomUptimeChart"></canvas></div>
+      </section>
     </main>
   </div>
 </body>
