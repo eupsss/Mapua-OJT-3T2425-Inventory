@@ -24,32 +24,53 @@ const toSql = obj => ({
 router.get('/', async (req, res, next) => {
   try {
     const { room, pc, history } = req.query;
+    let sql     = '';
+    let params  = [];
 
-    /* Grid – current hardware */
+    /* 1. Grid view – *current* hardware only */
     if (room && !history) {
-      const [rows] = await pool.execute(
-        `SELECT * FROM v_CurrentAssets WHERE RoomID = ? ORDER BY PCNumber`,
-        [room]
-      );
-      return res.json(rows);
+      sql = `
+        SELECT a.*, c.Status                             -- live flag
+          FROM v_CurrentAssets  AS a                     -- RetiredAt IS NULL
+          JOIN Computers        AS c
+               ON c.RoomID   = a.RoomID
+              AND c.PCNumber = a.PCNumber
+         WHERE a.RoomID = ?
+         ORDER BY a.PCNumber`;
+      params = [room];
     }
 
-    /* Full history for one PC */
-    if (room && pc && history) {
-      const [rows] = await pool.execute(
-        `SELECT * FROM ComputerAssets
-          WHERE RoomID = ? AND PCNumber = ?
-          ORDER BY InstalledAt DESC`,
-        [room, pc]
-      );
-      return res.json(rows);
+    /* 2. Full asset history for one PC */
+    else if (room && pc && history) {
+      sql = `
+        SELECT a.*, c.Status
+          FROM ComputerAssets   AS a
+          JOIN Computers        AS c
+               ON c.RoomID   = a.RoomID
+              AND c.PCNumber = a.PCNumber
+         WHERE a.RoomID   = ?
+           AND a.PCNumber = ?
+         ORDER BY a.InstalledAt DESC`;
+      params = [room, pc];
     }
 
-    /* Admin – everything */
-    const [rows] = await pool.execute('SELECT * FROM ComputerAssets');
+    /* 3. Admin view – everything */
+    else {
+      sql = `
+        SELECT a.*, c.Status
+          FROM ComputerAssets   AS a
+          JOIN Computers        AS c
+               ON c.RoomID   = a.RoomID
+              AND c.PCNumber = a.PCNumber`;
+    }
+
+    const [rows] = await pool.execute(sql, params);
     res.json(rows);
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
+
 
 /* ─────────────────────────── CREATE  (POST) ──────────────────────────
    • Inserts a new “asset row”.  

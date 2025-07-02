@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Settings – Mapúa Inventory</title>
+
+  <!-- Palette variables -->
+  <style>
+    :root {
+      --color-primary: #C8102E;      /* Mapúan Red */
+      --color-primary-dark: #A10B26; /* Dark Red */
+      --color-accent: #FFC72C;       /* Gold Accent */
+      --color-text: #333333;         /* Charcoal */
+      --color-bg: #F5F5F5;           /* Light Gray */
+      --color-white: #FFFFFF;        /* White */
+    }
+  </style>
+
+  <!-- Global CSS -->
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Page‐specific CSS -->
+  <link rel="stylesheet" href="settings.css" />
+  <!-- Page‐specific JS -->
+  <script defer src="settings.js"></script>
+</head>
+<body>
+  <!-- Floating clock placeholder -->
+  <div id="floating-time" class="floating-time"></div>
+
+  <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+    <div class="brand">
+        <img src="../icons/logo.png" alt="Logo" class="logo" />
+        <h1>Inventory</h1>
+    </div>
+
+    <nav class="sidebar-nav">
+        <ul>
+        <li><a href="index.html">📊 Dashboard</a></li>
+        <li><a href="rooms.html">🏠 Rooms</a></li>
+        <li><a href="assets.html">💻 Assets</a></li>
+        <li><a href="reports.html">📑 Reports</a></li>
+        <li><a href="settings.html">⚙️ Settings</a></li>
+        </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+        <button id="signOutBtn" class="btn-signout">Sign Out</button>
+    </div>
+    </aside>
+
+
+  <div class="main-content">
+    <header class="header">
+      <h2>Profile Settings</h2>
+      <div class="user-menu">
+        <span class="username">Admin</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="profile-form">
+        <form id="profileForm">
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input type="text"
+                   id="firstName"
+                   name="firstName"
+                   placeholder="Your first name"
+                   required />
+          </div>
+
+          <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input type="text"
+                   id="lastName"
+                   name="lastName"
+                   placeholder="Your last name"
+                   required />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email"
+                   id="email"
+                   name="email"
+                   placeholder="you@company.com"
+                   required />
+          </div>
+
+          <div class="form-group">
+            <label for="contactNo">Contact No.</label>
+            <input type="tel"
+                   id="contactNo"
+                   name="contactNo"
+                   placeholder="+63 912 345 6789" />
+          </div>
+
+          <div class="form-buttons">
+            <button type="button" id="cancelBtn" class="btn-light">Cancel</button>
+            <button type="submit" id="saveBtn" class="btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

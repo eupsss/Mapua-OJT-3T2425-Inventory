@@ -5,8 +5,10 @@ In MySQL Shell
 \connect root@127.0.0.1:3306 
 (this depends on the port you are using for MySQL)
 
-\source "C:\xampp\htdocs\OJT2\MapuaInventory.sql"
-\source "C:\xampp\htdocs\OJT2\computer_assets_126rows_insert.sql"
+
+Now you will source, in MySQL shell
+\source "C:\xampp\htdocs\OJT\MapuaInventory.sql"
+\source "C:\xampp\htdocs\OJT\computer_assets_126rows_insert.sql"
 
 
 

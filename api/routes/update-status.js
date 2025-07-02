@@ -1,73 +1,87 @@
-// routes/update-status.js
+// api/routes/update-status.js
 import { Router } from 'express';
 import { pool }   from '../db.js';
 
 const router = Router();
 
+/* ── helper: pull last ticket for this PC (today) ─────────────── */
+async function latestTicket(conn, roomID, pcNumber) {
+  const [rows] = await conn.execute(
+    `SELECT ServiceTicketID
+       FROM ComputerStatusLog
+      WHERE RoomID   = ?
+        AND PCNumber = ?
+      ORDER BY LoggedAt DESC
+      LIMIT 1`,
+    [roomID, pcNumber]
+  );
+  return rows.length ? rows[0].ServiceTicketID : null;
+}
+
+/* ───────────────────────── route ─────────────────────────────── */
 router.post('/', async (req, res) => {
-  // 1️⃣ Get userID from the session
-  const sessUser = req.session.user;
-  if (!sessUser || !sessUser.id) {
-    return res.status(401).json({ success: false, error: 'Not authenticated' });
+  /* 0️⃣  Auth */
+  const u = req.session.user;
+  if (!u || !u.id) {
+    return res.status(401).json({ success:false, error:'Not authenticated' });
   }
-  const userID = sessUser.id;
+  const userID = u.id;
 
-  // 2️⃣ Pull payload & validate
-  const { roomID = '', pcNumber = '', status = '', issues = [] } = req.body;
-  if (
-    !roomID.trim() ||
-    !pcNumber.toString().trim() ||
-    !['Available', 'Defective'].includes(status)
-  ) {
-    return res.status(422).json({
-      success: false,
-      error: 'Invalid input: roomID, pcNumber, and status (Available|Defective) are required.'
-    });
+  /* 1️⃣  Validate */
+  const { roomID='', pcNumber='', status='', issues=[] } = req.body;
+  if (!roomID.trim() || !pcNumber || !['Working','Defective'].includes(status)) {
+    return res.status(422).json({ success:false, error:'Invalid payload' });
   }
+  const issuesStr = Array.isArray(issues)&&issues.length ? issues.join(',') : null;
 
-  // 3️⃣ Prepare derived values
-  const logStatus = status === 'Available' ? 'Working' : 'Defective';
-  const issuesStr = Array.isArray(issues) && issues.length
-    ? issues.join(',')
-    : null;
-
+  /* 2️⃣  Transaction */
+  const conn = await pool.getConnection();
   try {
-    // 4️⃣ Update the master Computers table
-    await pool.execute(
+    await conn.beginTransaction();
+
+    /* a) Computers */
+    await conn.execute(
       `UPDATE Computers
-         SET Status = ?, LastUpdated = NOW()
-       WHERE RoomID = ? AND PCNumber = ? AND PCNumber <= 40`,
+          SET Status = ?, LastUpdated = NOW()
+        WHERE RoomID=? AND PCNumber=?`,
       [status, roomID, pcNumber]
     );
 
-    // 5️⃣ Insert (or upsert) into ComputerStatusLog
-    await pool.execute(
+    /* b) ComputerStatusLog
+          – pass NULL so trigger builds the ticket */
+    await conn.execute(
       `INSERT INTO ComputerStatusLog
-         (RoomID, PCNumber, CheckDate, Status, Issues, UserID, LoggedAt)
-       VALUES (?, ?, CURDATE(), ?, ?, ?, NOW())
+         (RoomID,PCNumber,CheckDate,Status,Issues,ServiceTicketID,UserID,LoggedAt)
+       VALUES (?, ?, CURDATE(), ?, ?, NULL, ?, NOW())
        ON DUPLICATE KEY UPDATE
-         Status   = VALUES(Status),
-         Issues   = VALUES(Issues),
-         UserID   = VALUES(UserID),
-         LoggedAt = VALUES(LoggedAt)`,
-      [roomID, pcNumber, logStatus, issuesStr, userID]
+         Status  = VALUES(Status),
+         Issues  = VALUES(Issues),
+         UserID  = VALUES(UserID),
+         LoggedAt= VALUES(LoggedAt)`,
+      [roomID, pcNumber, status, issuesStr, userID]
     );
 
-    // 6️⃣ If we just marked it back to Available, record a fix
-    if (status === 'Available') {
-      await pool.execute(
+    /* c) fetch the ticket the trigger (or earlier row) produced */
+    const ticketID = await latestTicket(conn, roomID, pcNumber);
+
+    /* d) Fixes row when status becomes Working */
+    if (status === 'Working') {
+      await conn.execute(
         `INSERT INTO Fixes
-           (RoomID, PCNumber, FixedAt, FixedBy)
-         VALUES (?, ?, NOW(), ?)`,
-        [roomID, pcNumber, userID]
+           (RoomID, PCNumber, FixedAt, FixedBy, ServiceTicketID)
+         VALUES (?, ?, NOW(), ?, ?)`,
+        [roomID, pcNumber, userID, ticketID]
       );
     }
 
-    // 7️⃣ Success
-    return res.json({ success: true });
-  } catch (err) {
-    console.error('❌ [update-status] error:', err);
-    return res.status(500).json({ success: false, error: 'Internal server error' });
+    await conn.commit();
+    res.json({ success:true });
+  } catch (e) {
+    await conn.rollback();
+    console.error('❌ [update-status]', e);
+    res.status(500).json({ success:false, error:'DB error' });
+  } finally {
+    conn.release();
   }
 });
 

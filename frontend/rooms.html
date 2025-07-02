@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Rooms Monitor - Mapua Inventory</title>
+  <title>Rooms Monitor – Mapua Inventory</title>
 
   <!-- Palette variables -->
   <style>
@@ -18,9 +18,9 @@
   </style>
 
   <!-- Link to global CSS -->
-   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="rooms.css" />
-  <!-- Page-specific JS (for later) -->
+  <!-- Page-specific JS -->
   <script defer src="rooms.js"></script>
 </head>
 <body>
@@ -50,7 +50,6 @@
       <h2>Rooms Monitor</h2>
       <div class="user-menu">
         <span class="username">Admin</span>
-
       </div>
     </header>
 
@@ -60,22 +59,26 @@
         <label for="room-select">Select Room:</label>
         <select id="room-select">
           <option value="">-- Choose a room --</option>
-          <!-- Rooms will be populated here -->
+          <!-- Rooms are populated via JS -->
         </select>
+
+         <button id="bulkCheck" class="btn-primary">Check All</button>
+
+        <!-- improved Add Room button -->
+        <button id="addRoomBtn" class="btn-add-room">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon-plus" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path fill="currentColor" d="M12 5a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H6a1 1 0 1 1 0-2h5V6a1 1 0 0 1 1-1z"/>
+          </svg>
+          <span>Add Room</span>
+        </button>
       </section>
 
       <!-- PC Grid -->
-      <section class="pc-grid">
-        <!-- Example PC card (to be generated via JS) -->
-        <!--
-        <div class="pc-card" data-pc="00" data-status="Working">
-          <img src="../icons/working.png" alt="Working" class="pc-icon" />
-          <span class="pc-number">00</span>
-        </div>
-        -->
-      </section>
+      <section class="pc-grid"><!-- cards injected via JS --></section>
     </main>
   </div>
+
+  <!-- Report Defect modal -->
   <div id="defectModal" class="modal hidden">
     <div class="modal-content">
       <h3>Select Issue(s)</h3>
@@ -92,48 +95,68 @@
           <label><input type="checkbox" name="issues" value="Other"> Other</label>
         </div>
         <div class="modal-buttons">
-          <button type="button" id="defectCancel">Cancel</button>
-          <button type="submit" id="defectConfirm">Confirm</button>
+          <button type="button" id="defectCancel" class="btn-light">Cancel</button>
+          <button type="submit"                class="btn-primary">Confirm</button>
         </div>
       </form>
     </div>
   </div>
-  <!-- ───────────────  NEW  ─────────────── -->
-<div id="fixModal" class="modal hidden">
-  <div class="modal-content">
-    <h3>Log a Fix</h3>
 
-    <form id="fixForm" class="fix-form">
-  <div class="form-group">
-    <label for="fixDate">Fixed On</label>
-    <!-- Log Fix modal -->
-<input type="datetime-local"
-       id="fixDateTime"    
-       name="fixedOn"
-       required>
+  <!-- Log Fix modal -->
+  <div id="fixModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Log a Fix</h3>
+      <form id="fixForm" class="fix-form">
+        <div class="form-group">
+          <label for="fixDateTime">Fixed On</label>
+          <input  type="datetime-local" id="fixDateTime" name="fixedOn" required>
+        </div>
 
+        <div class="form-group">
+          <label for="fixerInput">Fixed By</label>
+          <input  type="text" id="fixerInput" name="fixedBy"
+                  list="fixerList" placeholder="Type to search…" required />
+          <datalist id="fixerList"></datalist>
+        </div>
+
+        <div class="modal-buttons">
+          <button type="button" id="fixCancel" class="btn-light">Cancel</button>
+          <button type="submit"                class="btn-primary">Confirm</button>
+        </div>
+      </form>
+    </div>
   </div>
 
-  <div class="form-group">
-    <label for="fixerInput">Fixed By</label>
-    <input  type="text"
-            id="fixerInput"
-            name="fixedBy"
-            list="fixerList"
-            placeholder="Type to search…"
-            required />
-    <datalist id="fixerList"></datalist>
-  </div>
+  <!-- Add Room modal -->
+  <div id="roomModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Add a Room</h3>
+      <form id="roomForm" class="fix-form">
+        <div class="form-group">
+          <label for="roomID">Room ID</label>
+          <input id="roomID" name="roomID" maxlength="10"
+                 placeholder="e.g. MPO312" required>
+        </div>
 
-  <div class="modal-buttons">
-    <button type="button" id="fixCancel" class="btn-light">Cancel</button>
-    <button type="submit"                class="btn-primary">Confirm</button>
-  </div>
-</form>
+        <div class="form-group">
+          <label for="roomConfig">Configuration</label>
+          <input type="number" id="roomConfig" name="roomConfig"
+                 min="1" value="1">
+        </div>
 
+        <div class="form-group">
+          <label for="pcNum">Number of PCs</label>
+          <input type="number" id="pcNum" name="pcNum"
+                 min="1" value="41">
+        </div>
+
+        <div class="modal-buttons">
+          <button type="button" id="roomCancel" class="btn-light">Cancel</button>
+          <button type="submit"                    class="btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
-<!-- ───────────────────────────────────── -->
 
 </body>
 </html>
