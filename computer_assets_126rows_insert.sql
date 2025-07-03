@@ -121,12 +121,11 @@ INSERT INTO ComputerAssets (RoomID, PCNumber, InstalledAt, MakeModel, SerialNumb
 INSERT INTO ComputerAssets (RoomID, PCNumber, InstalledAt, MakeModel, SerialNumber, CPU, GPU, RAM_GB, Storage_GB, MonitorModel, MonitorSerial, UPSModel, UPSSerial, CreatedBy) VALUES ('MPO310','40','2025-01-23','Dell OptiPlex 5000','SN-294096','Intel Core i7-12700','AMD Radeon RX 6400',16,512,'LG 24MP59G','MS-2799','APC BVX700','UPS-9154',1);
 INSERT INTO ComputerAssets (RoomID, PCNumber, InstalledAt, MakeModel, SerialNumber, CPU, GPU, RAM_GB, Storage_GB, MonitorModel, MonitorSerial, UPSModel, UPSSerial, CreatedBy) VALUES ('MPO310','40','2016-04-09','Dell OptiPlex 5000','SN-358863','Intel Core i5-13600','NVIDIA T1000',16,512,'Dell P2422H','MS-7416','CyberPower CP850','UPS-2056',1);
 INSERT INTO ComputerAssets (RoomID, PCNumber, InstalledAt, MakeModel, SerialNumber, CPU, GPU, RAM_GB, Storage_GB, MonitorModel, MonitorSerial, UPSModel, UPSSerial, CreatedBy) VALUES ('MPO310','40','2019-09-29','HP EliteDesk 800','SN-826706','Intel Core i5-13600','AMD Radeon RX 6400',16,256,'HP 24mh','MS-4693','CyberPower CP850','UPS-9768',1);
-INSERT INTO ComputerAssets (RoomID, PCNumber, InstalledAt, MakeModel, SerialNumber, CPU, GPU, RAM_GB, Storage_GB, MonitorModel, MonitorSerial, UPSModel, UPSSerial, CreatedBy) VALUES ('MPO310','41','2022-11-06','Dell OptiPlex 5000','SN-825978','Intel Core i5-13600','AMD Radeon RX 6400',16,1024,'HP 24mh','MS-4897','APC BVX700','UPS-7927',1);
-INSERT INTO ComputerAssets (RoomID, PCNumber, InstalledAt, MakeModel, SerialNumber, CPU, GPU, RAM_GB, Storage_GB, MonitorModel, MonitorSerial, UPSModel, UPSSerial, CreatedBy) VALUES ('MPO310','41','2015-02-07','Dell OptiPlex 5000','SN-520919','Intel Core i5-13600','Intel UHD 770',32,256,'Dell P2422H','MS-6501','APC BVX700','UPS-5186',1);
-INSERT INTO ComputerAssets (RoomID, PCNumber, InstalledAt, MakeModel, SerialNumber, CPU, GPU, RAM_GB, Storage_GB, MonitorModel, MonitorSerial, UPSModel, UPSSerial, CreatedBy) VALUES ('MPO310','41','2019-05-11','Dell OptiPlex 5000','SN-888107','Intel Core i5-13600','NVIDIA T1000',8,256,'Dell P2422H','MS-9304','APC BVX700','UPS-8815',1);
 INSERT INTO `Users`
   (`FirstName`, `LastName`, `Email`, `ContactNo`, `PasswordHash`, `Role`)
 VALUES
   ('Mark Francis James', 'Bona', 'markbona1203@gmail.com', '09989750452',
    '$2b$10$28Sv80PSueZMABtUDr6y8.G7yElz6KhLsDGSB.ReKYugfPXq0zRiW',  -- bcrypt-10 hash
    'Inventory');
+
+

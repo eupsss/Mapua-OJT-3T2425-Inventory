@@ -8,15 +8,23 @@
   <!-- Load the dynamic GEMINI key -->
   <script src="/config.js"></script>
 
-  <!-- PDF & Canvas tools -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
+  <!-- PDF & Canvas tools (no SRI so they actually load) -->
+  <script
+    defer
+    src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
+  </script>
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js">
+  </script>
 
   <!-- Your custom CSS -->
   <link rel="stylesheet" href="export.css">
+
   <!-- Your export logic -->
   <script src="export.js" defer></script>
 </head>
+
 <body>
   <div class="export-card">
     <h1>Inventory Dashboard Export</h1>
@@ -30,6 +38,18 @@
   </div>
 
   <!-- Hidden dashboard for snapshotting -->
-  <iframe id="dash-frame" src="index.html" class="hidden-iframe"></iframe>
+  <iframe
+  id="dash-frame"
+  src="index.html"
+  style="
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+    width: 1200px;
+    height: 800px;
+    border: none;
+  "
+></iframe>
+
 </body>
 </html>

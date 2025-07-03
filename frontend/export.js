@@ -1,23 +1,20 @@
-/* ───────────────────────────────────────────────────────────────
-   export.js – dashboard-to-PDF with Gemini insights (bold aware)
-   ─────────────────────────────────────────────────────────────── */
+// export.js
 (async () => {
-
-  /* Guard for missing key */
+  // 1️⃣ Ensure we have a Gemini key
   if (!window.GEMINI_KEY) {
     alert('⚠️ Gemini API key missing – check your .env');
     return;
   }
 
-  /* 1.  DOM refs */
-  const btn      = document.getElementById('download-btn');
-  const homeBtn  = document.getElementById('home-btn');
-  const progWrap = document.getElementById('progress-wrapper');
-  const progBar  = document.getElementById('progress-bar');
-  const progText = document.getElementById('progress-text');
-  const iframe   = document.getElementById('dash-frame');
+  // 2️⃣ Grab DOM references
+  const downloadBtn = document.getElementById('download-btn');
+  const homeBtn     = document.getElementById('home-btn');
+  const progWrap    = document.getElementById('progress-wrapper');
+  const progBar     = document.getElementById('progress-bar');
+  const progText    = document.getElementById('progress-text');
+  const iframe      = document.getElementById('dash-frame');
 
-  /* 2.  All canvas IDs we want in the PDF (old + new) */
+  // 3️⃣ IDs of the canvas elements we expect
   const chartIds = [
     'statusChart',
     'checkChart',
@@ -25,39 +22,51 @@
     'defectsByRoomChart',
     'issuesBreakdownChart',
     'fixesOverTimeChart',
-    'defectsTrendChart',      // ← NEW
-    'issuesOverTimeChart',    // ← NEW
-    'roomUptimeChart'         // ← NEW
+    'defectsTrendChart',
+    'issuesOverTimeChart',
+    'roomUptimeChart'
   ];
 
-  /* 3. wait until iframe posts “charts-ready” */
-  function waitForCharts () {
-    return new Promise(res => {
-      function handler (e) {
-        if (e.data?.type === 'charts-ready') {
-          window.removeEventListener('message', handler);
-          res();
-        }
+  // 4️⃣ Poll until at least one canvas is in the iframe (or timeout)
+  async function waitForCharts() {
+    const TIMEOUT  = 10000;  // ms
+    const INTERVAL = 200;    // ms
+    const start    = Date.now();
+
+    // Wait for initial iframe load
+    await new Promise(resolve => {
+      if (iframe.contentWindow.document.readyState === 'complete') {
+        return resolve();
       }
-      window.addEventListener('message', handler);
-      iframe.contentWindow.location.reload();
+      iframe.onload = () => resolve();
     });
+
+    // Poll for any of our chart canvases
+    while (Date.now() - start < TIMEOUT) {
+      const doc = iframe.contentWindow.document;
+      if (chartIds.some(id => doc.getElementById(id))) {
+        return;
+      }
+      await new Promise(r => setTimeout(r, INTERVAL));
+    }
+    throw new Error('Timeout waiting for charts to appear in iframe');
   }
 
-  /* 4.  helper – render **bold** in jsPDF */
-  function markdownBold (doc, text, x, y, maxW) {
+  // 5️⃣ Helper to print markdown **bold** in jsPDF
+  function markdownBold(doc, text, x, y, maxW) {
     const lineH = 14;
     let cx = x, cy = y;
-
     text.split(/(\*\*[^*]+\*\*)/).forEach(seg => {
-      const bold = seg.startsWith('**') && seg.endsWith('**');
+      const bold = /^\*\*.+\*\*$/.test(seg);
       const raw  = bold ? seg.slice(2, -2) : seg;
-
-      raw.split(/\s+/).forEach((w, i, a) => {
-        const chunk = (i === a.length-1) ? w : w + ' ';
+      doc.setFont('Helvetica', bold ? 'bold' : 'normal');
+      raw.split(' ').forEach((w, i, arr) => {
+        const chunk = i === arr.length - 1 ? w : w + ' ';
         const wpx   = doc.getTextWidth(chunk);
-        if (cx + wpx > x + maxW) { cx = x; cy += lineH; }
-        doc.setFont('Helvetica', bold ? 'bold' : 'normal');
+        if (cx + wpx > x + maxW) {
+          cx = x;
+          cy += lineH;
+        }
         doc.text(chunk, cx, cy);
         cx += wpx;
       });
@@ -65,95 +74,141 @@
     return cy + lineH;
   }
 
-  /* 5.  Main click handler */
-  btn.addEventListener('click', async () => {
+  // 6️⃣ Main export logic
+  downloadBtn.addEventListener('click', async () => {
     progWrap.classList.remove('hidden');
     progBar.style.width  = '0%';
     progText.textContent = 'Loading charts…';
 
-    await waitForCharts();
+    // 6a) Wait for charts to render in the iframe
+    try {
+      await waitForCharts();
+    } catch (err) {
+      return alert('⏱️ ' + err.message);
+    }
     progBar.style.width  = '10%';
     progText.textContent = 'Fetching insights…';
 
-    /* Gather chart metadata */
-    const payloads = chartIds.map(id => {
-      const doc    = iframe.contentWindow.document;
+    // 6b) Extract chart data & titles
+    const doc      = iframe.contentWindow.document;
+    const payloads = [];
+
+    chartIds.forEach(id => {
       const canvas = doc.getElementById(id);
-      if (!canvas) return null;                          // skip missing
-      const chart  = iframe.contentWindow.Chart.getChart(canvas);
-      const title  = canvas.closest('.chart-card').querySelector('h4').textContent;
+      if (!canvas) return;
 
-      /* Some charts (stacked bar) may have multiple datasets – flatten */
-      const flatVals = chart.data.datasets
-        .map(ds => ds.data)
-        .flat();
+      const chart = iframe.contentWindow.Chart.getChart(canvas);
+      if (!chart) return;
 
-      return { id, title, labels: chart.data.labels, values: flatVals };
-    }).filter(Boolean);                                  // remove nulls
+      // Determine title from Chart.js title plugin or fallback to ID
+      let title = id;
+      const tp   = chart.options?.plugins?.title;
+      if (tp) {
+        if (typeof tp.text === 'string') title = tp.text;
+        else if (Array.isArray(tp.text)) title = tp.text.join(' ');
+      }
 
-    /*  Fetch Gemini insight per chart */
+      const values = chart.data.datasets.flatMap(ds => ds.data);
+      payloads.push({ id, title, labels: chart.data.labels, values });
+    });
+
+    if (!payloads.length) {
+      return alert('❗️ No charts found to export. Make sure they have rendered.');
+    }
+
+    // 6c) Fetch Gemini insights for each chart
     const insights = [];
     for (let i = 0; i < payloads.length; i++) {
       const { title, labels, values } = payloads[i];
-
-      const prompt =
-        `You are **a data-insights analyst**.\n` +
-        `Write a concise, formal paragraph analysing the chart "**${title}**".\n` +
-        `LABELS: ${JSON.stringify(labels)}\n` +
-        `VALUES: ${JSON.stringify(values)}\n` +
-        `• ≤150 words\n` +
-        `• Use business terms (uptime, defect rate, trend…)\n` +
-        `• Wrap key metrics in **double asterisks**\n` +
-        `Return ONE plain paragraph.`;
+      const prompt = `
+You are a data-analytics expert.
+Provide one concise, formal paragraph analysis of the chart “${title}”.
+DATA:
+• LABELS: ${JSON.stringify(labels)}
+• VALUES: ${JSON.stringify(values)}
+GUIDELINES:
+- ≤ 150 words
+- Wrap key metrics in **double asterisks**
+      `.trim();
 
       const resp = await fetch('/api/insights', {
-        method : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ prompt })
+        method: 'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ prompt })
       });
 
       if (!resp.ok) {
-        console.error('Insights proxy failed', resp.status, await resp.text());
-        alert(`Insights error ${resp.status}`);
-        return;
+        console.error('Insights API error', resp.status);
+        return alert(`Insights error: ${resp.status}`);
       }
 
       const { text } = await resp.json();
       insights.push(text || '(no analysis)');
-      progBar.style.width =
-        `${10 + Math.round((i+1)/payloads.length*40)}%`;
+      progBar.style.width = `${10 + Math.round((i+1)/payloads.length*40)}%`;
     }
 
-    /*  Build PDF */
+    // 6d) Build the PDF
     progText.textContent = 'Rendering PDF…';
     const { jsPDF } = window.jspdf;
-    const pdf  = new jsPDF({ orientation:'landscape', unit:'pt', format:'a4' });
-    const W    = pdf.internal.pageSize.getWidth();
-    const H    = pdf.internal.pageSize.getHeight();
-    const m    = 40;
+    const pdf       = new jsPDF({ orientation:'landscape', unit:'pt', format:'a4' });
+    const W         = pdf.internal.pageSize.getWidth();
+    const H         = pdf.internal.pageSize.getHeight();
+    const margin    = 40;
+    let addedPages  = 0;
 
     for (let i = 0; i < payloads.length; i++) {
       const { id } = payloads[i];
-      const canvas = iframe.contentWindow.document.getElementById(id);
-      const bmp    = await html2canvas(canvas, { backgroundColor:'#fff', scale:2 });
-      const img    = bmp.toDataURL('image/png');
-      const r      = Math.min((W-2*m)/bmp.width, (H/2-2*m)/bmp.height);
-      const w      = bmp.width*r, h=bmp.height*r;
+      const canvas = doc.getElementById(id);
+      if (!canvas) {
+        console.warn('Skipping missing canvas for', id);
+        continue;
+      }
 
-      pdf.addImage(img, 'PNG', (W-w)/2, m, w, h, '', 'FAST');
-      pdf.setFontSize(12);
-      markdownBold(pdf, insights[i], m, m + h + 20, W - 2*m);
+      // Render to an offscreen bitmap
+      const bmp = await html2canvas(canvas, { backgroundColor:'#fff', scale:2 });
+      if (!bmp.width || !bmp.height) {
+        console.warn('Skipping zero-size chart for', id);
+        continue;
+      }
 
-      if (i < payloads.length - 1) pdf.addPage();
-      progBar.style.width =
-        `${50 + Math.round((i+1)/payloads.length*50)}%`;
+      // Compute a safe scale (never zero)
+      const s1 = (W - 2*margin) / bmp.width;
+      const s2 = (H/2 - 2*margin) / bmp.height;
+      const scale = Math.max(0.01, Math.min(s1, s2));
+
+      const w = bmp.width * scale;
+      const h = bmp.height * scale;
+      const x = Math.max(margin, (W - w)/2);
+      const y = margin;
+
+      // Only add a new page after the first
+      if (addedPages > 0) pdf.addPage();
+
+      try {
+        pdf.addImage(bmp.toDataURL('image/png'), 'PNG', x, y, w, h, undefined, 'FAST');
+      } catch (err) {
+        console.error('Error adding image for', id, err);
+        continue;
+      }
+
+      // Draw insight text below
+      const textY = y + h + 20;
+      markdownBold(pdf, insights[i], margin, textY, W - 2*margin);
+
+      addedPages++;
+      progBar.style.width = `${50 + Math.round(addedPages/payloads.length*50)}%`;
     }
 
-    pdf.save('Inventory_Charts_With_Insights.pdf');
+    if (addedPages === 0) {
+      return alert('❗️ All charts were skipped; PDF is empty.');
+    }
+
+    pdf.save('Inventory_With_Insights.pdf');
     progText.textContent = 'Done!';
   });
 
-  /* 6. Home */
-  homeBtn.addEventListener('click',
-    () => window.location.href = 'index.html');
+  // 7️⃣ Navigate back home
+  homeBtn.addEventListener('click', () => {
+    window.location.href = 'index.html';
+  });
 })();

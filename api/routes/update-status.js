@@ -78,8 +78,10 @@ router.post('/', async (req, res) => {
     res.json({ success:true });
   } catch (e) {
     await conn.rollback();
-    console.error('❌ [update-status]', e);
-    res.status(500).json({ success:false, error:'DB error' });
+    console.error('❌ [update-status] SQL Error:', e.code, e.sqlMessage);
+    res.status(500).json({ success:false, error: e.sqlMessage });
+  
+
   } finally {
     conn.release();
   }

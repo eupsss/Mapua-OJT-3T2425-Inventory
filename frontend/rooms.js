@@ -1,12 +1,3 @@
-/* ====================================================================
-   rooms.js ― Mapúa Inventory
-   Full version (2025-07-01)
-   • Defect & fix flows
-   • Bulk “Check All”
-   • Add-Room modal
-   • Adaptive grid by Room_Config
-   ==================================================================== */
-
 /* ───── 0. Login guard ───────────────────────────────────────────── */
 const user = JSON.parse(sessionStorage.getItem('user'));
 if (!user) {

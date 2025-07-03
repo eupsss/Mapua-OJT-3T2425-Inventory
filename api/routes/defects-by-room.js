@@ -1,36 +1,45 @@
+// routes/defects-by-room.js
 import { Router } from 'express';
 import { pool }   from '../db.js';
 
 const router = Router();
 
-const latestStatus = `
-  SELECT l.RoomID, l.PCNumber, l.Status
-    FROM ComputerStatusLog  AS l
-    JOIN (
-      SELECT RoomID, PCNumber, MAX(LoggedAt) AS lastLog
-        FROM ComputerStatusLog
-    GROUP BY RoomID, PCNumber
-    ) AS x
-      ON  x.RoomID   = l.RoomID
-     AND x.PCNumber = l.PCNumber
-     AND x.lastLog  = l.LoggedAt
-`;
-
-router.get('/', async (_, res) => {
+router.get('/', async (req, res) => {
   try {
-    const [rows] = await pool.query(`
-      SELECT a.RoomID,
-             SUM(ls.Status = 'Defective') AS defects
-        FROM ComputerAssets a
-   LEFT JOIN (${latestStatus}) ls
-          ON ls.RoomID   = a.RoomID
-         AND ls.PCNumber = a.PCNumber
-    GROUP BY a.RoomID
-    ORDER BY a.RoomID
-    `);
+    // parse ?month=YYYY-MM
+    const monthParam = req.query.month || '';
+    const [year, mon] = monthParam.split('-').map(Number);
+    let rows;
+
+    if (year && mon) {
+      // filter ComputerStatusLog by year/month
+      [rows] = await pool.query(`
+        SELECT 
+          l.RoomID,
+          COUNT(*) AS defects
+        FROM ComputerStatusLog AS l
+        WHERE l.Status = 'Defective'
+          AND YEAR(l.CheckDate)=? 
+          AND MONTH(l.CheckDate)=?
+        GROUP BY l.RoomID
+        ORDER BY l.RoomID
+      `, [year, mon]);
+    } else {
+      // no month filter → all time aggregate
+      [rows] = await pool.query(`
+        SELECT 
+          l.RoomID,
+          COUNT(*) AS defects
+        FROM ComputerStatusLog AS l
+        WHERE l.Status = 'Defective'
+        GROUP BY l.RoomID
+        ORDER BY l.RoomID
+      `);
+    }
+
     res.json(rows);
   } catch (e) {
-    console.error(e);
+    console.error('❌ [defects-by-room]', e);
     res.status(500).json({ error: 'DB error' });
   }
 });

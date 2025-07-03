@@ -49,10 +49,13 @@
     </header>
 
     <main>
-      <!-- date filter -->
+      <!-- Month picker -->
       <section class="filters">
-        <label for="date-filter">Select Date:</label>
-        <input type="date" id="date-filter" />
+        <label for="month-picker-toggle" class="picker-label">Select Month:</label>
+        <input type="checkbox" id="month-picker-toggle" hidden />
+        <span id="selected-month-display" class="picker-label"></span>
+        <div id="month-picker" class="month-year-picker"></div>
+        <input type="month" id="month-filter" hidden />
       </section>
 
       <!-- KPI cards -->
@@ -60,7 +63,7 @@
         <div class="card"><h3>Total PCs</h3><p id="total-pcs">0</p></div>
         <div class="card"><h3>Working PCs</h3><p id="working-pcs">0</p></div>
         <div class="card"><h3>Defective PCs</h3><p id="defective-pcs">0</p></div>
-        <div class="card"><h3>Checked Today</h3><p id="checked-today">0</p></div>
+        <div class="card"><h3>Checked This Month</h3><p id="checked-today">0</p></div>
       </section>
 
       <!-- Charts grid -->
@@ -71,8 +74,6 @@
         <div class="chart-card"><h4>Defects by Room</h4><canvas id="defectsByRoomChart"></canvas></div>
         <div class="chart-card"><h4>Issues Breakdown</h4><canvas id="issuesBreakdownChart"></canvas></div>
         <div class="chart-card"><h4>Fixes Over Time</h4><canvas id="fixesOverTimeChart"></canvas></div>
-
-        <!-- NEW charts -->
         <div class="chart-card"><h4>Daily Defects Trend</h4><canvas id="defectsTrendChart"></canvas></div>
         <div class="chart-card"><h4>Issue Mix by Month</h4><canvas id="issuesOverTimeChart"></canvas></div>
         <div class="chart-card"><h4>Room Uptime Ranking</h4><canvas id="roomUptimeChart"></canvas></div>

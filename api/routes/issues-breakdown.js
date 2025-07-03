@@ -6,7 +6,11 @@ const router = express.Router();
 
 router.get('/', async (req, res, next) => {
   try {
-    const [rows] = await pool.query(`
+    const monthParam = req.query.month || '';
+    const [year, mon] = monthParam.split('-').map(Number);
+
+    // Base SQL: list of all possible issues
+    let sql = `
       SELECT
         i.issue,
         SUM(FIND_IN_SET(i.issue, c.Issues) > 0) AS cnt
@@ -22,9 +26,27 @@ router.get('/', async (req, res, next) => {
         SELECT 'Other'
       ) AS i
       CROSS JOIN ComputerStatusLog AS c
+    `;
+    const params = [];
+
+    // If month filter provided, restrict by CheckDate
+    if (year && mon) {
+      sql += `
+        WHERE YEAR(c.CheckDate) = ?
+          AND MONTH(c.CheckDate) = ?
+      `;
+      params.push(year, mon);
+    }
+
+    // Group & return
+    sql += `
       GROUP BY i.issue
-    `);
+      ORDER BY cnt DESC, i.issue
+    `;
+
+    const [rows] = await pool.query(sql, params);
     res.json(rows);
+
   } catch (err) {
     console.error('❌ [issues-breakdown] error:', err);
     next(err);
