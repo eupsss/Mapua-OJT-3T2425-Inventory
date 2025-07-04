@@ -219,3 +219,19 @@
     gap: 1rem;
   }
 }
+
+/* Force modal to follow JS show/hide exactly */
+.modal {
+  display: flex;       /* override any other rule */
+  z-index: 9999;       /* on top of grid/sidebar */
+}
+.modal.hidden {
+  display: none !important;
+}
+
+/* Optional: style the “no history” cell */
+#specTable em {
+  color: #666;
+  font-style: normal;
+  font-weight: 500;
+}

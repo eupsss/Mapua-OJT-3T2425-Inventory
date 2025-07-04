@@ -335,6 +335,17 @@ function wireAddRoomModal() {
  *************************************************/
 document.addEventListener('DOMContentLoaded', () => {
   $('.username').textContent = user.name || 'Admin';
+  const userNameEl  = document.querySelector('.user-name');
+  const avatarEl = document.querySelector('.avatar');
+  if (avatarEl) {
+    const initials = user.name
+      .split(' ')
+      .map(n => n[0]?.toUpperCase() || '')
+      .join('')
+      .slice(0,2);
+    avatarEl.textContent = initials;
+  }
+  if (userNameEl)  userNameEl.textContent  = user.name;
 
   /* Grab elements */
   roomSelect      = $('#room-select');

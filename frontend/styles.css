@@ -19,32 +19,211 @@ body{
 }
 
 /* ─── Sidebar ─────────────────────────────────────────────── */
-.sidebar{
-  position:sticky;top:0;
-  width:240px;height:100vh;
-  background:#1d181c;color:#fff;
-  display:flex;flex-direction:column;
+/* ─── Sidebar ─────────────────────────────────────────────── */
+.sidebar {
+  position: sticky;
+  top: 0;
+  width: 240px;
+  height: 100vh;
+  background: #1d181c;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 1.5rem;
 }
-.sidebar .brand{display:flex;align-items:center;justify-content:center;margin-bottom:2rem}
-.sidebar .logo{width:32px;height:32px;margin-right:1rem}
-.sidebar nav ul{list-style:none}
-.sidebar nav li a{
-  display:flex;align-items:center;
-  padding:.75rem 1rem;color:#fff;text-decoration:none;
-  transition:background .2s;
+
+/* Brand / Logo */
+.sidebar .brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
 }
-.sidebar nav li a:hover,
-.sidebar nav li.active a{background:var(--color-primary-dark)}
-.sidebar-footer{margin-top:auto;padding:1rem;display:flex;flex-direction:column;gap:.5rem}
+.sidebar .logo {
+  width: 32px;
+  height: 32px;
+}
+.sidebar .brand h1 {
+  font-size: 1.3rem;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* Nav links */
+.sidebar nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.sidebar nav li {
+  margin-bottom: 0.5rem;
+}
+.sidebar nav li a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  margin: 0;
+  background: transparent;
+  color: #ccc;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+.sidebar nav li a:hover {
+  background: #2e2a33;
+  color: #fff;
+}
+.sidebar nav li.active a {
+  background: #C8102E;
+  color: #fff;
+}
+
+/* Icon spacing */
+.sidebar nav li a .icon {
+  font-size: 1.2rem;
+}
+
+/* Footer buttons */
+.sidebar-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #2e2a33;
+}
 .sidebar-footer .export-btn,
-.sidebar-footer #signout-btn{
-  width:100%;padding:.6rem 0;border-radius:4px;font-weight:600;
-  border:none;cursor:pointer;text-decoration:none;transition:background .2s;
+.sidebar-footer #signout-btn {
+  padding: 0.6rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
 }
+.sidebar-footer .export-btn {
+  background: #38A169;
+  color: #fff;
+}
+.sidebar-footer .export-btn:hover {
+  background: #48BB78;
+}
+.sidebar-footer #signout-btn {
+  background: transparent;
+  color: #ccc;
+}
+.sidebar-footer #signout-btn:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* toolbar base */
+.toolbar {
+  display: flex;
+  align-items: center;
+  background: var(--color-white);
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* left, center, right flex regions */
+.toolbar-left    { display: flex; align-items: center; gap: .5rem; }
+.toolbar-center  { flex: 1; }
+.toolbar-right   { display: flex; align-items: center; gap: 1rem; }
+
+/* version badge */
+.badge {
+  background: var(--color-accent);
+  color: var(--color-white);
+  padding: .25rem .5rem;
+  font-size: .85rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+/* small badge for notifications */
+.badge-sm {
+  background: var(--color-primary);
+  color: var(--color-white);
+  font-size: .65rem;
+  padding: 0 .25rem;
+  border-radius: 999px;
+  margin-left: .25rem;
+  vertical-align: top;
+}
+
+/* search input as pill */
+.search-input {
+  width: 100%;
+  padding: .5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  font-size: .95rem;
+  outline: none;
+}
+
+/* icon buttons */
+.icon-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  position: relative;
+}
+
+/* avatar circle */
+.avatar {
+  width: 32px; height: 32px;
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
 .sidebar-footer .export-btn{background:#238636;color:#fff}
 .sidebar-footer .export-btn:hover{background:#2ea043}
 .sidebar-footer #signout-btn{background:transparent;color:#fff}
 .sidebar-footer #signout-btn:hover{background:rgba(255,255,255,.1)}
+/* ─── Sidebar Profile ─────────────────────────────────────── */
+.sidebar-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  background: #2e3748;                   /* subtle panel bg */
+  border-radius: 0.75rem;
+}
+.sidebar-profile .avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #C8102E;                   /* primary red */
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.sidebar-profile .user-name {
+  color: #E0E6ED;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* ─── Main Content ────────────────────────────────────────── */
 .main-content{flex:1;display:flex;flex-direction:column;padding:1.5rem;overflow-y:auto}
@@ -73,7 +252,36 @@ body{
 .grid-item.disabled:hover{background:#f0f0f0}
 
 /* ─── KPI cards ───────────────────────────────────────────── */
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem;margin-bottom:1.75rem}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.card h3 {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: 1rem;
+  color: var(--color-primary);
+}
+
+.card p {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* optional: add a little icon bubble */
+.card .icon {
+  background: var(--color-primary);
+  color: #fff;
+  padding: .25rem;
+  border-radius: 50%;
+  font-size: 1.1rem;
+}
+
 .card{background:#fff;border-radius:8px;padding:1rem;box-shadow:0 2px 4px rgba(0,0,0,.1);text-align:center;display:flex;flex-direction:column;justify-content:space-between}
 .card h3{font-size:1rem;margin-bottom:.5rem;color:var(--color-primary)}
 .card p{font-size:1.8rem;font-weight:700;color:var(--color-text)}
@@ -96,4 +304,9 @@ body{
   .main-content{margin-left:0}
   .charts{grid-template-columns:1fr}
   .cards{grid-template-columns:1fr}
+}
+@media(min-width:1024px) {
+  .charts {
+    grid-template-columns: repeat(3,1fr);
+  }
 }

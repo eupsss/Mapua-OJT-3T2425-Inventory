@@ -50,7 +50,7 @@ class MonthYearPicker {
         };
         return t;
       })(),
-      btn('›', () => this._change( 1))
+      btn('›', () => this._change(1))
     );
     this.container.append(h);
   }
@@ -77,8 +77,13 @@ class MonthYearPicker {
       if (future) cell.classList.add('disabled');
 
       // mark selected
-      const [sy,sm] = document.getElementById('month-filter').value.split('-').map(Number);
-      if (sy === this.year && sm === m) cell.classList.add('selected');
+      const monthInput = document.getElementById('month-filter');
+      if (monthInput) {
+        const [sy,sm] = monthInput.value.split('-').map(Number);
+        if (sy === this.year && sm === m) {
+          cell.classList.add('selected');
+        }
+      }
 
       cell.onclick = () => {
         if (future) return;
@@ -96,7 +101,6 @@ class MonthYearPicker {
       cell.className = 'grid-item';
       cell.textContent = y;
 
-      // disable future years
       if (y > this.todayYear) cell.classList.add('disabled');
       if (y === this.year)    cell.classList.add('selected');
 
@@ -127,47 +131,74 @@ class MonthYearPicker {
   }
 }
 
-/* ─── Single DOMContentLoaded ───────────────────────────────── */
+/* ─── ONCE THE DOM IS READY ────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
-  // — Auth guard (your existing) —
+  // — Auth guard —
   const user = JSON.parse(sessionStorage.getItem('user'));
   if (!user) {
     alert('Access denied.');
     return location.href = 'login.html';
   }
-  document.querySelector('.username').textContent = user.name;
-  document.getElementById('signout-btn')
-    .addEventListener('click', () => {
+
+  // — Populate avatar with initials (instead of the old .username) —
+  const userNameEl  = document.querySelector('.user-name');
+  const userEmailEl = document.querySelector('.user-email');
+  if (userNameEl)  userNameEl.textContent  = user.name;
+  if (userEmailEl) userEmailEl.textContent = user.email;
+  const avatarEl = document.querySelector('.avatar');
+  if (avatarEl) {
+    const initials = user.name
+      .split(' ')
+      .map(n => n[0]?.toUpperCase() || '')
+      .join('')
+      .slice(0,2);
+    avatarEl.textContent = initials;
+  }
+
+  // — Sign-out button —
+  const signOut = document.getElementById('signout-btn');
+  if (signOut) {
+    signOut.addEventListener('click', () => {
       sessionStorage.removeItem('user');
       location.href = 'login.html';
     });
+  }
 
-  // — Month picker & badge wiring —
+  // — Month picker wiring —
   const monthInput = document.getElementById('month-filter');
-  monthInput.value = new Date().toISOString().slice(0,7);
+  if (monthInput) {
+    monthInput.value = new Date().toISOString().slice(0,7);
+    const badge = document.getElementById('selected-month-display');
+    if (badge) {
+      badge.textContent = monthInput.value;
+      badge.onclick = () => {
+        const toggle = document.getElementById('month-picker-toggle');
+        if (toggle) toggle.checked = !toggle.checked;
+      };
+    }
 
-  const badge = document.getElementById('selected-month-display');
-  badge.textContent = monthInput.value;
-  badge.onclick = () => {
-    const toggle = document.getElementById('month-picker-toggle');
-    toggle.checked = !toggle.checked;
-  };
+    new MonthYearPicker(
+      document.getElementById('month-picker'),
+      val => {
+        monthInput.value = val;
+        if (badge) badge.textContent = val;
+        const toggle = document.getElementById('month-picker-toggle');
+        if (toggle) toggle.checked = false;
+        refreshDashboard(val);
+      },
+      monthInput.value
+    );
 
-  new MonthYearPicker(
-    document.getElementById('month-picker'),
-    val => {
-      monthInput.value = val;
-      badge.textContent  = val;
-      document.getElementById('month-picker-toggle').checked = false;
-      refreshDashboard(val);
-    },
-    monthInput.value
-  );
+    // — Initial load —
+    refreshDashboard(monthInput.value);
+  }
 
   // — Floating clock —
   const updateClock = () => {
     const n = new Date();
-    document.getElementById('floating-time').innerHTML =
+    const ft = document.getElementById('floating-time');
+    if (!ft) return;
+    ft.innerHTML =
       `<span class="time">${n.toLocaleTimeString()}</span>
        <span class="date">${n.toLocaleDateString('en-US',{
          weekday:'long', year:'numeric', month:'long', day:'numeric'
@@ -176,11 +207,56 @@ document.addEventListener('DOMContentLoaded', () => {
   updateClock();
   setInterval(updateClock, 1000);
 
-  // — First dashboard load —
-  refreshDashboard(monthInput.value);
+  //
+  // ─── ORBITNEST-STYLE WIRING ───────────────────────────────
+  //
+
+  // 1) Theme toggle
+  const themeToggle = document.querySelector('.theme-toggle-btn');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const dark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+      themeToggle.textContent = dark ? '☀️' : '🌙';
+    });
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+      themeToggle.textContent = '☀️';
+    }
+  }
+
+  // 2) Search filter
+  const searchInput = document.querySelector('.search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', e => {
+      const q = e.target.value.trim().toLowerCase();
+      document.querySelectorAll('.chart-card').forEach(card => {
+        const title = card.querySelector('h4')?.textContent.toLowerCase() || '';
+        card.style.display = title.includes(q) ? '' : 'none';
+      });
+    });
+  }
+
+  // 3) Mobile menu toggle
+  const menuBtn = document.querySelector('.menu-toggle-btn');
+  if (menuBtn) {
+    menuBtn.addEventListener('click', () => {
+      document.querySelector('.sidebar')?.classList.toggle('open');
+    });
+  }
+
+  // 4) Notification bell stub
+  const bell = document.querySelector('.notifications');
+  if (bell) {
+    bell.addEventListener('click', () => {
+      const count = bell.querySelector('.badge-sm')?.textContent || '0';
+      alert(`You have ${count} new notification${count==='1'?'':'s'}.`);
+    });
+  }
 });
 
-/* ─── Dashboard functions (unchanged) ───────────────────────────────── */
+/* ─── All your existing refreshDashboard & chart-drawing code below ───────────────────────────────── */
+// … same as you had before …
 async function refreshDashboard(ym) {
   await loadMetrics(ym);
   await drawChecksOverTime(ym);
@@ -193,11 +269,10 @@ async function refreshDashboard(ym) {
     drawIssuesOverTime(ym),
     drawRoomUptime(ym),
   ]);
-}
   if (window.parent && window.parent !== window) {
     window.parent.postMessage({ type: 'charts-ready' }, '*');
   }
-
+}
 
 async function loadMetrics(ym) {
   const r = await fetch(`${API_BASE}/metrics?month=${ym}`);
@@ -250,7 +325,6 @@ async function drawChecksOverTime(ym) {
     }
   );
 }
-
 
 // 3. Average Fix Time
 async function drawAvgFixTime(ym) {
@@ -431,7 +505,4 @@ function getCSSVar(name) {
   return getComputedStyle(document.documentElement)
              .getPropertyValue(name)
              .trim();
-}
-if (window.parent && window.parent !== window) {
-  window.parent.postMessage({ type: 'charts-ready' }, '*');
 }

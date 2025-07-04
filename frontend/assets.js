@@ -1,202 +1,260 @@
-// export.js
-(async () => {
-  // 1️⃣ Check for Gemini key
-  if (!window.GEMINI_KEY) {
-    alert('⚠️ Gemini API key missing – check your .env');
+// assets.js
+console.log('▶ assets.js loaded');
+
+const API_BASE  = '/api/computer-assets';
+const ROOMS_API = '/api/rooms';
+
+const usernameElm = document.querySelector('.username');
+const signoutBtn  = document.getElementById('signout-btn');
+const roomSel     = document.getElementById('room-select');
+const grid        = document.getElementById('pc-grid');
+
+const specM   = document.getElementById('specModal');
+const specPc  = document.getElementById('specPc');
+const specTbl = document.getElementById('specTable');
+const btnPrev = document.getElementById('prevSpec');
+const btnNext = document.getElementById('nextSpec');
+const btnAdd  = document.getElementById('specAdd');
+const btnEdit = document.getElementById('specEdit');
+const btnClose= document.getElementById('specClose');
+
+const editM     = document.getElementById('editModal');
+const editForm  = document.getElementById('editForm');
+const editTitle = document.getElementById('editTitle');
+const editCancel= document.getElementById('editCancel');
+
+let selCard     = null;
+let historyRows = [];
+let cursor      = 0;
+let currentCfg  = 1;
+
+// AUTH & SIGN OUT
+const user = JSON.parse(sessionStorage.getItem('user'));
+if (!user) location.href = 'login.html';
+usernameElm.textContent = user.name;
+signoutBtn.onclick = () => {
+  sessionStorage.removeItem('user');
+  location.href = 'login.html';
+};
+
+// HELPERS
+function positionFor(n, cfg = 1) {
+  const num = +n;
+  if (num === 0) return { row: 1, col: 9 };
+  const r = Math.ceil(num / 8) + 1,
+        i = (num - 1) % 8;
+  if (cfg === 1) return { row: r, col: i < 4 ? 9 - i : 8 - i };
+  if (cfg === 2) return { row: r, col: i < 5 ? 9 - i : 8 - i };
+  const idx = num - 1;
+  return { row: Math.floor(idx / 10) + 2, col: (idx % 10) + 1 };
+}
+
+function friendly(st, date) {
+  if (st === 'Defective') return 'Defective';
+  const age = (Date.now() - Date.parse(date)) / 3.15576e10;
+  return age >= 5 ? 'Needs Replacement' : 'Working';
+}
+
+function iconFor(stat) {
+  return stat === 'Defective'           ? '../icons/defective.png'
+       : stat === 'Needs Replacement'   ? '../icons/warning.png'
+       :                                   '../icons/working.png';
+}
+
+function selectCard(card) {
+  if (selCard) selCard.classList.remove('selected');
+  selCard = card;
+  card.classList.add('selected');
+}
+
+// GRID CLICK HANDLER
+grid.addEventListener('click', e => {
+  const card = e.target.closest('.pc-card');
+  if (!card) return;
+  selectCard(card);
+  openHistory(card.dataset.pc);
+});
+
+// OPEN HISTORY (always shows modal)
+async function openHistory(pcNum) {
+  try {
+    const resp = await fetch(
+      `${API_BASE}?room=${roomSel.value}&pc=${pcNum}&history=1`
+    );
+    if (!resp.ok) throw new Error(`Status ${resp.status}`);
+    const rows = await resp.json();
+    historyRows = rows.sort((a, b) =>
+      new Date(b.InstalledAt) - new Date(a.InstalledAt)
+    );
+    cursor = 0;
+    renderHistory();
+    specM.classList.remove('hidden');
+  } catch (err) {
+    console.error('history fetch failed', err);
+    alert('Unable to load specs/history.');
+  }
+}
+
+function renderHistory() {
+  specPc.textContent = selCard?.dataset.pc || '—';
+  if (!historyRows.length) {
+    specTbl.innerHTML = `
+      <tr><td colspan="2" style="text-align:center;padding:1rem;">
+        <em>No history yet for this PC.</em>
+      </td></tr>`;
+    btnPrev.disabled = btnNext.disabled = true;
     return;
   }
+  const r = historyRows[cursor];
+  specTbl.innerHTML = `
+    <tr><td><b>Status</b></td><td>${friendly(r.Status, r.InstalledAt)}</td></tr>
+    <tr><td>Installed</td><td>${r.InstalledAt}</td></tr>
+    ${r.RetiredAt ? `<tr><td>Retired</td><td>${r.RetiredAt}</td></tr>` : ''}
+    <tr><td>Make/Model</td><td>${r.MakeModel}</td></tr>
+    <tr><td>Serial #</td><td>${r.SerialNumber}</td></tr>
+    <tr><td>CPU</td><td>${r.CPU || '-'}</td></tr>
+    <tr><td>GPU</td><td>${r.GPU || '-'}</td></tr>
+    <tr><td>RAM (GB)</td><td>${r.RAM_GB || '-'}</td></tr>
+    <tr><td>Storage (GB)</td><td>${r.Storage_GB || '-'}</td></tr>
+  `;
+  btnPrev.disabled = cursor >= historyRows.length - 1;
+  btnNext.disabled = cursor <= 0;
+}
 
-  // 2️⃣ DOM refs
-  const downloadBtn = document.getElementById('download-btn');
-  const homeBtn     = document.getElementById('home-btn');
-  const progWrap    = document.getElementById('progress-wrapper');
-  const progBar     = document.getElementById('progress-bar');
-  const progText    = document.getElementById('progress-text');
-  const iframe      = document.getElementById('dash-frame');
+// MODAL BUTTONS
+btnPrev.onclick  = () => { if (cursor < historyRows.length - 1) { cursor++; renderHistory(); } };
+btnNext.onclick  = () => { if (cursor > 0)               { cursor--; renderHistory(); } };
+btnAdd .onclick  = () => openEdit('create');
+btnEdit.onclick  = () => openEdit('update');
+btnClose.onclick = () => specM.classList.add('hidden');
 
-  // 3️⃣ The canvas IDs we expect in the dashboard
-  const chartIds = [
-    'statusChart',
-    'checkChart',
-    'avgFixTimeChart',
-    'defectsByRoomChart',
-    'issuesBreakdownChart',
-    'fixesOverTimeChart',
-    'defectsTrendChart',
-    'issuesOverTimeChart',
-    'roomUptimeChart'
-  ];
+// OPEN EDIT MODAL
+function openEdit(mode) {
+  editM.dataset.mode = mode;
+  editTitle.textContent = mode === 'create' ? 'Add PC' : 'Edit PC';
+  editForm.reset();
+  document.getElementById('efRoom').value = roomSel.value;
+  if (mode === 'update' && selCard) {
+    const r = historyRows[0];
+    document.getElementById('efPC').value        = r.PCNumber;
+    document.getElementById('efInstalled').value = r.InstalledAt.slice(0,10);
+    document.getElementById('efMake').value      = r.MakeModel;
+    document.getElementById('efSerial').value    = r.SerialNumber;
+    document.getElementById('efCPU').value       = r.CPU || '';
+    document.getElementById('efGPU').value       = r.GPU || '';
+    document.getElementById('efRAM').value       = r.RAM_GB || '';
+    document.getElementById('efStorage').value   = r.Storage_GB || '';
+  }
+  document.getElementById('efPC').readOnly = (mode === 'update');
+  editM.classList.remove('hidden');
+}
+editCancel.onclick = () => editM.classList.add('hidden');
 
-  // 4️⃣ Poll until at least one chart canvas exists in iframe
-  async function waitForCharts() {
-    const TIMEOUT  = 10000; // ms
-    const INTERVAL = 200;   // ms
-    const start    = Date.now();
+// SUBMIT EDIT FORM
+editForm.onsubmit = async e => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(editForm));
+  const mode = editM.dataset.mode;
+  const url  = mode === 'update' ? `${API_BASE}/${selCard.dataset.id}` : API_BASE;
+  const opts = {
+    method : mode === 'update' ? 'PUT' : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body   : JSON.stringify(data)
+  };
+  try {
+    await fetch(url, opts);
+    editM.classList.add('hidden');
+    specM.classList.add('hidden');
+    await loadGrid();
+  } catch (err) {
+    console.error('save failed', err);
+  }
+};
 
-    // ensure iframe has loaded
-    await new Promise(res => {
-      if (iframe.contentWindow.document.readyState === 'complete') {
-        return res();
-      }
-      iframe.onload = () => res();
+// CARD RENDERERS
+function makeCard(r) {
+  const card = document.createElement('div');
+  card.className   = 'pc-card';
+  card.dataset.id  = r.AssetID;
+  card.dataset.pc  = r.PCNumber;
+  card.innerHTML   = `
+    <img src="${iconFor(friendly(r.Status, r.InstalledAt))}" class="pc-icon" alt="${r.Status}">
+    <span class="pc-number">${r.PCNumber}</span>`;
+  const pos = positionFor(r.PCNumber, currentCfg);
+  card.style.gridRow    = pos.row;
+  card.style.gridColumn = pos.col;
+  grid.appendChild(card);
+}
+
+function makeEmptyCard(pc) {
+  const card = document.createElement('div');
+  card.className  = 'pc-card empty';
+  card.dataset.pc = pc;
+  card.innerHTML  = `
+    <img src="../icons/working.png" class="pc-icon" alt="Empty">
+    <span class="pc-number">${pc}</span>`;
+  const pos = positionFor(pc, currentCfg);
+  card.style.gridRow    = pos.row;
+  card.style.gridColumn = pos.col;
+  grid.appendChild(card);
+}
+
+// LOAD ROOMS
+async function loadRooms() {
+  try {
+    const rooms = await fetch(ROOMS_API).then(r => r.json());
+    roomSel.innerHTML = '<option value="">– Choose a room –</option>';
+    rooms.forEach(rm => {
+      const o = document.createElement('option');
+      o.value          = rm.RoomID;
+      o.textContent    = rm.RoomID;
+      o.dataset.config = rm.Room_Config || 1;
+      o.dataset.pcnum  = rm.PC_NUM      || 40;
+      roomSel.appendChild(o);
     });
+  } catch (err) {
+    console.error('loadRooms error', err);
+  }
+}
 
-    // poll for any of our chart canvases
-    while (Date.now() - start < TIMEOUT) {
-      const doc = iframe.contentWindow.document;
-      if (chartIds.some(id => doc.getElementById(id))) {
-        return;
-      }
-      await new Promise(r => setTimeout(r, INTERVAL));
-    }
-    throw new Error('Timeout waiting for charts to appear');
+// LOAD GRID
+async function loadGrid() {
+  if (!roomSel.value) return;
+  grid.innerHTML = '';
+  const opt       = roomSel.selectedOptions[0];
+  currentCfg      = +opt.dataset.config || 1;
+  const slotCount = +opt.dataset.pcnum-1  || 40;
+  grid.classList.toggle('config-2', currentCfg === 2);
+
+  let rows = [];
+  try {
+    rows = await fetch(`${API_BASE}?room=${roomSel.value}`).then(r => r.json());
+  } catch (err) {
+    console.error('fetch assets error', err);
   }
 
-  // 5️⃣ Helper to render **bold** text in jsPDF
-  function markdownBold(doc, text, x, y, maxW) {
-    const lineH = 14;
-    let cx = x, cy = y;
-    text.split(/(\*\*[^*]+\*\*)/).forEach(seg => {
-      const isBold = /^\*\*.+\*\*$/.test(seg);
-      const raw    = isBold ? seg.slice(2, -2) : seg;
-      doc.setFont('Helvetica', isBold ? 'bold' : 'normal');
-      raw.split(' ').forEach((w,i,arr) => {
-        const chunk = (i === arr.length - 1 ? w : w + ' ');
-        const wpx   = doc.getTextWidth(chunk);
-        if (cx + wpx > x + maxW) {
-          cx = x;
-          cy += lineH;
-        }
-        doc.text(chunk, cx, cy);
-        cx += wpx;
-      });
-    });
-    return cy + lineH;
+  const latest = {};
+  rows.forEach(r => {
+    const key = r.PCNumber;
+    if (!latest[key] ||
+        new Date(r.InstalledAt) > new Date(latest[key].InstalledAt)) {
+      latest[key] = r;
+    }
+  });
+
+  for (let i = 0; i <= slotCount; i++) {
+    const pc = String(i).padStart(2, '0');
+    latest[pc] ? makeCard(latest[pc]) : makeEmptyCard(pc);
   }
+}
 
-  // 6️⃣ Main export flow
-  downloadBtn.addEventListener('click', async () => {
-    progWrap.classList.remove('hidden');
-    progBar.style.width  = '0%';
-    progText.textContent = 'Loading charts…';
+// EVENTS & BOOTSTRAP
+roomSel.onchange = loadGrid;
 
-    // wait for charts to show up
-    try {
-      await waitForCharts();
-    } catch (err) {
-      return alert('⏱️ ' + err.message);
-    }
-    progBar.style.width  = '10%';
-    progText.textContent = 'Fetching insights…';
-
-    // 6a) Extract chart data
-    const doc      = iframe.contentWindow.document;
-    const payloads = [];
-
-    chartIds.forEach(id => {
-      const canvas = doc.getElementById(id);
-      if (!canvas) return;
-
-      const chart = iframe.contentWindow.Chart.getChart(canvas);
-      if (!chart) return;
-
-      // get title from Chart.js title plugin or fallback to ID
-      let title = id;
-      const tp   = chart.options?.plugins?.title;
-      if (tp) {
-        if (typeof tp.text === 'string') title = tp.text;
-        else if (Array.isArray(tp.text)) title = tp.text.join(' ');
-      }
-
-      const values = chart.data.datasets.flatMap(ds => ds.data);
-      payloads.push({ id, title, labels: chart.data.labels, values, canvas });
-    });
-
-    if (!payloads.length) {
-      return alert('❗️ No charts found to export. Make sure the dashboard has rendered them.');
-    }
-
-    // 6b) Fetch Gemini insights
-    const insights = [];
-    for (let i = 0; i < payloads.length; i++) {
-      const { title, labels, values } = payloads[i];
-      const prompt = `
-You are a data-analytics expert.
-Provide one concise, formal paragraph analysis of the chart “${title}”.
-DATA:
-• LABELS: ${JSON.stringify(labels)}
-• VALUES: ${JSON.stringify(values)}
-GUIDELINES:
-- ≤ 150 words
-- Wrap key metrics in **double asterisks**
-      `.trim();
-
-      const resp = await fetch('/api/insights', {
-        method: 'POST',
-        headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify({ prompt })
-      });
-      if (!resp.ok) {
-        console.error('Insights API error', resp.status);
-        return alert(`Insights error: ${resp.status}`);
-      }
-      const { text } = await resp.json();
-      insights.push(text || '(no analysis)');
-      progBar.style.width = `${10 + Math.round((i+1)/payloads.length*40)}%`;
-    }
-
-    // 6c) Render PDF
-    progText.textContent = 'Rendering PDF…';
-    const { jsPDF } = window.jspdf;
-    const pdf       = new jsPDF({ orientation:'landscape', unit:'pt', format:'a4' });
-    const W         = pdf.internal.pageSize.getWidth();
-    const H         = pdf.internal.pageSize.getHeight();
-    const margin    = 40;
-    let pageCount   = 0;
-
-    for (let i = 0; i < payloads.length; i++) {
-      const { canvas } = payloads[i];
-      // pull raw data URL from the chart <canvas>
-      const imgData = canvas.toDataURL('image/png');
-      const cw      = canvas.width;
-      const ch      = canvas.height;
-      if (!cw || !ch) {
-        console.warn('Skipping zero-dimension canvas:', payloads[i].id);
-        continue;
-      }
-
-      // compute scale
-      const s1 = (W - 2*margin) / cw;
-      const s2 = (H/2 - 2*margin) / ch;
-      const scale = Math.min(s1, s2);
-
-      const w = cw * scale;
-      const h = ch * scale;
-      const x = (W - w) / 2;
-      const y = margin;
-
-      if (pageCount > 0) pdf.addPage();
-      pageCount++;
-
-      pdf.addImage(imgData, 'PNG', x, y, w, h, undefined, 'FAST');
-
-      // draw insight below
-      const textY = y + h + 20;
-      markdownBold(pdf, insights[i], margin, textY, W - 2*margin);
-
-      progBar.style.width = `${50 + Math.round(pageCount/payloads.length*50)}%`;
-    }
-
-    if (pageCount === 0) {
-      return alert('❗️ All charts were skipped; PDF would be empty.');
-    }
-
-    pdf.save('Inventory_With_Insights.pdf');
-    progText.textContent = 'Done!';
-  });
-
-  // 7️⃣ Return Home
-  homeBtn.addEventListener('click', () => {
-    window.location.href = 'index.html';
-  });
+(async function(){
+  await loadRooms();
+  if (roomSel.options.length > 1) {
+    roomSel.selectedIndex = 1;
+    await loadGrid();
+  }
 })();
