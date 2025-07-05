@@ -1,17 +1,33 @@
-import express  from 'express';
+import express from 'express';
 import { pool } from '../db.js';          // ← mysql2 / promise pool
 
 const router = express.Router();
 
 /* ─────────────────────────────  HELPERS  ───────────────────────────── */
-
 // Build a safe INSERT/UPDATE dynamically
 const toSql = obj => ({
-  cols : Object.keys(obj).map(k => `\`${k}\``).join(','),
-  vals : Object.values(obj),
-  qMarks: Object.keys(obj).map(() => '?').join(',')
+  cols   : Object.keys(obj).map(k => `\`${k}\``).join(','),
+  vals   : Object.values(obj),
+  qMarks : Object.keys(obj).map(() => '?').join(',')
 });
 
+/* ────────────────  NEW: APPEND-ONLY HISTORY ROUTE  ───────────────── */
+router.post('/history', async (req, res, next) => {
+  try {
+    const data = req.body;
+    if (!data.RoomID || !data.PCNumber || !data.InstalledAt) {
+      return res.status(400).json({ error: 'RoomID, PCNumber & InstalledAt required' });
+    }
+    const { cols, vals, qMarks } = toSql(data);
+    await pool.execute(
+      `INSERT INTO ComputerAssets (${cols}) VALUES (${qMarks})`,
+      vals
+    );
+    res.status(201).json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
 /* ────────────────────────────  READ  (GET)  ──────────────────────────
    #1  /api/computer-assets?room=MPO310
        ⟶ active hardware grid (RetiredAt IS NULL)
@@ -24,11 +40,11 @@ const toSql = obj => ({
 router.get('/', async (req, res, next) => {
   try {
     const { room, pc, history } = req.query;
-    let sql     = '';
-    let params  = [];
+    let sql    = '';
+    let params = [];
 
-    /* 1. Grid view – *current* hardware only */
     if (room && !history) {
+      // 1. Grid view – *current* hardware only
       sql = `
         SELECT a.*, c.Status                             -- live flag
           FROM v_CurrentAssets  AS a                     -- RetiredAt IS NULL
@@ -38,10 +54,9 @@ router.get('/', async (req, res, next) => {
          WHERE a.RoomID = ?
          ORDER BY a.PCNumber`;
       params = [room];
-    }
 
-    /* 2. Full asset history for one PC */
-    else if (room && pc && history) {
+    } else if (room && pc && history) {
+      // 2. Full asset history for one PC
       sql = `
         SELECT a.*, c.Status
           FROM ComputerAssets   AS a
@@ -52,10 +67,9 @@ router.get('/', async (req, res, next) => {
            AND a.PCNumber = ?
          ORDER BY a.InstalledAt DESC`;
       params = [room, pc];
-    }
 
-    /* 3. Admin view – everything */
-    else {
+    } else {
+      // 3. Admin view – everything
       sql = `
         SELECT a.*, c.Status
           FROM ComputerAssets   AS a
@@ -71,7 +85,6 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-
 /* ─────────────────────────── CREATE  (POST) ──────────────────────────
    • Inserts a new “asset row”.  
    • If there is still an *active* asset for the same RoomID+PCNumber,
@@ -79,7 +92,7 @@ router.get('/', async (req, res, next) => {
 ------------------------------------------------------------------------ */
 router.post('/', async (req, res, next) => {
   try {
-    const data = req.body;                 // must at least RoomID, PCNumber, InstalledAt …
+    const data = req.body;
     if (!data.RoomID || !data.PCNumber || !data.InstalledAt) {
       return res.status(400).json({ error: 'RoomID, PCNumber & InstalledAt required' });
     }
@@ -101,10 +114,12 @@ router.post('/', async (req, res, next) => {
       vals
     );
     res.status(201).json({ success: true });
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
-/* ─────────────────────────── UPDATE  (PUT) ───────────────────────────
+/* ─────────────────────────── UPDATE  (PUT)  ───────────────────────────
    • Standard field update by AssetID.
 ------------------------------------------------------------------------ */
 router.put('/:id', async (req, res, next) => {
@@ -121,7 +136,9 @@ router.put('/:id', async (req, res, next) => {
       [...Object.values(data), id]
     );
     res.json({ success: true });
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 /* ─────────────────────────── DELETE  (DELETE) ────────────────────────
@@ -132,7 +149,9 @@ router.delete('/:id', async (req, res, next) => {
     const { id } = req.params;
     await pool.execute('DELETE FROM ComputerAssets WHERE AssetID = ?', [id]);
     res.json({ success: true });
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 export default router;

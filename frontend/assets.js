@@ -1,8 +1,9 @@
 // assets.js
 console.log('▶ assets.js loaded');
 
-const API_BASE  = '/api/computer-assets';
-const ROOMS_API = '/api/rooms';
+const API_BASE   = '/api/computer-assets';
+const HISTORY_EP = API_BASE + '/history';
+const ROOMS_API  = '/api/rooms';
 
 const usernameElm = document.querySelector('.username');
 const signoutBtn  = document.getElementById('signout-btn');
@@ -28,7 +29,7 @@ let historyRows = [];
 let cursor      = 0;
 let currentCfg  = 1;
 
-// AUTH & SIGN OUT
+// — AUTH & SIGNOUT —
 const user = JSON.parse(sessionStorage.getItem('user'));
 if (!user) location.href = 'login.html';
 usernameElm.textContent = user.name;
@@ -37,14 +38,26 @@ signoutBtn.onclick = () => {
   location.href = 'login.html';
 };
 
-// HELPERS
+// — Sidebar avatar & name —
+document.querySelector('.user-name').textContent = user.name;
+document.querySelectorAll('.avatar').forEach(el => {
+  const initials = user.name
+    .split(' ')
+    .map(n => n[0]?.toUpperCase()||'')
+    .join('').slice(0,2);
+  el.textContent = initials;
+});
+
+// — HELPERS — 
+// always return a { row, col } so your grid placements never break
 function positionFor(n, cfg = 1) {
   const num = +n;
   if (num === 0) return { row: 1, col: 9 };
-  const r = Math.ceil(num / 8) + 1,
-        i = (num - 1) % 8;
+  const r = Math.ceil(num / 8) + 1;
+  const i = (num - 1) % 8;
   if (cfg === 1) return { row: r, col: i < 4 ? 9 - i : 8 - i };
   if (cfg === 2) return { row: r, col: i < 5 ? 9 - i : 8 - i };
+  // fallback layout
   const idx = num - 1;
   return { row: Math.floor(idx / 10) + 2, col: (idx % 10) + 1 };
 }
@@ -56,9 +69,9 @@ function friendly(st, date) {
 }
 
 function iconFor(stat) {
-  return stat === 'Defective'           ? '../icons/defective.png'
-       : stat === 'Needs Replacement'   ? '../icons/warning.png'
-       :                                   '../icons/working.png';
+  return stat === 'Defective'         ? '../icons/defective.png'
+       : stat === 'Needs Replacement' ? '../icons/warning.png'
+       :                                '../icons/working.png';
 }
 
 function selectCard(card) {
@@ -67,7 +80,7 @@ function selectCard(card) {
   card.classList.add('selected');
 }
 
-// GRID CLICK HANDLER
+// — GRID CLICK → show history modal —
 grid.addEventListener('click', e => {
   const card = e.target.closest('.pc-card');
   if (!card) return;
@@ -75,22 +88,19 @@ grid.addEventListener('click', e => {
   openHistory(card.dataset.pc);
 });
 
-// OPEN HISTORY (always shows modal)
+// — fetch & render history —
 async function openHistory(pcNum) {
   try {
     const resp = await fetch(
       `${API_BASE}?room=${roomSel.value}&pc=${pcNum}&history=1`
     );
-    if (!resp.ok) throw new Error(`Status ${resp.status}`);
-    const rows = await resp.json();
-    historyRows = rows.sort((a, b) =>
-      new Date(b.InstalledAt) - new Date(a.InstalledAt)
-    );
+    if (!resp.ok) throw new Error();
+    historyRows = (await resp.json())
+      .sort((a,b)=>new Date(b.InstalledAt) - new Date(a.InstalledAt));
     cursor = 0;
     renderHistory();
     specM.classList.remove('hidden');
-  } catch (err) {
-    console.error('history fetch failed', err);
+  } catch {
     alert('Unable to load specs/history.');
   }
 }
@@ -99,9 +109,11 @@ function renderHistory() {
   specPc.textContent = selCard?.dataset.pc || '—';
   if (!historyRows.length) {
     specTbl.innerHTML = `
-      <tr><td colspan="2" style="text-align:center;padding:1rem;">
-        <em>No history yet for this PC.</em>
-      </td></tr>`;
+      <tr>
+        <td colspan="2" style="text-align:center;padding:1rem;">
+          <em>No history yet for this PC.</em>
+        </td>
+      </tr>`;
     btnPrev.disabled = btnNext.disabled = true;
     return;
   }
@@ -115,27 +127,32 @@ function renderHistory() {
     <tr><td>CPU</td><td>${r.CPU || '-'}</td></tr>
     <tr><td>GPU</td><td>${r.GPU || '-'}</td></tr>
     <tr><td>RAM (GB)</td><td>${r.RAM_GB || '-'}</td></tr>
-    <tr><td>Storage (GB)</td><td>${r.Storage_GB || '-'}</td></tr>
-  `;
+    <tr><td>Storage (GB)</td><td>${r.Storage_GB || '-'}</td></tr>`;
   btnPrev.disabled = cursor >= historyRows.length - 1;
   btnNext.disabled = cursor <= 0;
 }
 
-// MODAL BUTTONS
+// — history modal buttons —
 btnPrev.onclick  = () => { if (cursor < historyRows.length - 1) { cursor++; renderHistory(); } };
 btnNext.onclick  = () => { if (cursor > 0)               { cursor--; renderHistory(); } };
-btnAdd .onclick  = () => openEdit('create');
+btnAdd.onclick   = () => openEdit('create');
 btnEdit.onclick  = () => openEdit('update');
 btnClose.onclick = () => specM.classList.add('hidden');
 
-// OPEN EDIT MODAL
+// — open Add/Edit form —
 function openEdit(mode) {
   editM.dataset.mode = mode;
-  editTitle.textContent = mode === 'create' ? 'Add PC' : 'Edit PC';
   editForm.reset();
   document.getElementById('efRoom').value = roomSel.value;
-  if (mode === 'update' && selCard) {
+
+  if (mode === 'create') {
+    editTitle.textContent = 'Add Record';
+    document.getElementById('efPC').readOnly = true;
+    document.getElementById('efPC').value    = selCard.dataset.pc;
+  } else {
+    editTitle.textContent = 'Edit PC';
     const r = historyRows[0];
+    document.getElementById('efPC').readOnly     = true;
     document.getElementById('efPC').value        = r.PCNumber;
     document.getElementById('efInstalled').value = r.InstalledAt.slice(0,10);
     document.getElementById('efMake').value      = r.MakeModel;
@@ -145,20 +162,22 @@ function openEdit(mode) {
     document.getElementById('efRAM').value       = r.RAM_GB || '';
     document.getElementById('efStorage').value   = r.Storage_GB || '';
   }
-  document.getElementById('efPC').readOnly = (mode === 'update');
+
   editM.classList.remove('hidden');
 }
 editCancel.onclick = () => editM.classList.add('hidden');
 
-// SUBMIT EDIT FORM
+// — submit Add/Edit —
 editForm.onsubmit = async e => {
   e.preventDefault();
   const data = Object.fromEntries(new FormData(editForm));
   const mode = editM.dataset.mode;
-  const url  = mode === 'update' ? `${API_BASE}/${selCard.dataset.id}` : API_BASE;
+  const url  = mode === 'create'
+    ? HISTORY_EP
+    : `${API_BASE}/${selCard.dataset.id}`;
   const opts = {
-    method : mode === 'update' ? 'PUT' : 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method : mode === 'create' ? 'POST' : 'PUT',
+    headers: { 'Content-Type':'application/json' },
     body   : JSON.stringify(data)
   };
   try {
@@ -166,19 +185,20 @@ editForm.onsubmit = async e => {
     editM.classList.add('hidden');
     specM.classList.add('hidden');
     await loadGrid();
-  } catch (err) {
-    console.error('save failed', err);
+  } catch {
+    console.error('save failed');
   }
 };
 
-// CARD RENDERERS
+// — build grid cards —
 function makeCard(r) {
   const card = document.createElement('div');
   card.className   = 'pc-card';
   card.dataset.id  = r.AssetID;
   card.dataset.pc  = r.PCNumber;
   card.innerHTML   = `
-    <img src="${iconFor(friendly(r.Status, r.InstalledAt))}" class="pc-icon" alt="${r.Status}">
+    <img src="${iconFor(friendly(r.Status, r.InstalledAt))}"
+         class="pc-icon" alt="${r.Status}">
     <span class="pc-number">${r.PCNumber}</span>`;
   const pos = positionFor(r.PCNumber, currentCfg);
   card.style.gridRow    = pos.row;
@@ -199,7 +219,7 @@ function makeEmptyCard(pc) {
   grid.appendChild(card);
 }
 
-// LOAD ROOMS
+// — load rooms & grid —
 async function loadRooms() {
   try {
     const rooms = await fetch(ROOMS_API).then(r => r.json());
@@ -217,18 +237,18 @@ async function loadRooms() {
   }
 }
 
-// LOAD GRID
 async function loadGrid() {
   if (!roomSel.value) return;
   grid.innerHTML = '';
   const opt       = roomSel.selectedOptions[0];
   currentCfg      = +opt.dataset.config || 1;
-  const slotCount = +opt.dataset.pcnum-1  || 40;
+  const slotCount = (+opt.dataset.pcnum - 1) || 40;
   grid.classList.toggle('config-2', currentCfg === 2);
 
   let rows = [];
   try {
-    rows = await fetch(`${API_BASE}?room=${roomSel.value}`).then(r => r.json());
+    rows = await fetch(`${API_BASE}?room=${roomSel.value}`)
+              .then(r => r.json());
   } catch (err) {
     console.error('fetch assets error', err);
   }
@@ -248,9 +268,8 @@ async function loadGrid() {
   }
 }
 
-// EVENTS & BOOTSTRAP
+// — kick things off —
 roomSel.onchange = loadGrid;
-
 (async function(){
   await loadRooms();
   if (roomSel.options.length > 1) {

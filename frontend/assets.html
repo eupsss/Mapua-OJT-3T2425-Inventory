@@ -10,31 +10,40 @@
 </head>
 <body>
   <div id="floating-time" class="floating-time"></div>
+
   <aside class="sidebar">
-    <div class="brand">
-      <img src="../icons/logo.png" class="logo" alt="Logo" />
-      <h1>Inventory</h1>
+    <div class="sidebar-profile">
+      <div class="avatar"></div>
+      <div class="user-name"></div>
     </div>
-    <nav>
+    <nav class="sidebar-nav">
       <ul>
-        <li><a href="index.html">📊 Dashboard</a></li>
-        <li><a href="rooms.html">🏠 Rooms</a></li>
-        <li class="active"><a href="assets.html">💻 Assets</a></li>
-        <li><a href="reports.html">📑 Reports</a></li>
-        <li><a href="settings.html">⚙️ Settings</a></li>
+        <li><a href="dashboard.html"><span class="icon">📊</span><span class="label">Dashboard</span></a></li>
+        <li><a href="rooms.html"><span class="icon">🏠</span><span class="label">Rooms</span></a></li>
+        <li class="active"><a href="assets.html"><span class="icon">💻</span><span class="label">Assets</span></a></li>
+        <li><a href="reports.html"><span class="icon">📑</span><span class="label">Reports</span></a></li>
+        <li><a href="settings.html"><span class="icon">⚙️</span><span class="label">Settings</span></a></li>
       </ul>
     </nav>
     <div class="sidebar-footer">
+      <button class="export-btn">📄 Export PDF</button>
       <button id="signout-btn">🔒 Sign Out</button>
     </div>
   </aside>
 
   <div class="main-content">
-    <header class="header"><h2>Assets Monitor</h2><div class="user-menu"><span class="username">…</span></div></header>
+    <header class="header">
+      <h2>Assets Monitor</h2>
+      <div class="user-menu"><span class="username">…</span></div>
+    </header>
+
     <section class="room-selector">
       <label for="room-select">Select Room:</label>
-      <select id="room-select"><option value="">– Choose a room –</option></select>
+      <select id="room-select">
+        <option value="">– Choose a room –</option>
+      </select>
     </section>
+
     <section id="pc-grid" class="pc-grid"></section>
   </div>
 
@@ -44,33 +53,63 @@
       <h3>PC <span id="specPc"></span> Specs</h3>
       <table id="specTable"></table>
       <div class="modal-buttons">
-        <button id="prevSpec"  class="btn-light">◀ Prev</button>
-        <button id="nextSpec"  class="btn-light">Next ▶</button>
+        <button id="prevSpec" class="btn-light">◀ Prev</button>
+        <button id="nextSpec" class="btn-light">Next ▶</button>
         <span style="flex:1"></span>
-        <button id="specAdd"   class="btn-light">➕ New</button>
-        <button id="specEdit"  class="btn-light">✏️ Edit</button>
+        <button id="specAdd" class="btn-light">➕ Add Record</button>
+        <button id="specEdit" class="btn-light">✏️ Edit</button>
         <button id="specClose" class="btn-primary">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- ADD / EDIT ASSET MODAL (unchanged) -->
+  <!-- ADD / EDIT ASSET MODAL -->
   <div id="editModal" class="modal hidden">
-   <div class="modal-content">
-      <h3 id="editTitle">Add PC</h3>
+    <div class="modal-content">
+      <h3 id="editTitle">Add Record</h3>
       <form id="editForm" class="fix-form">
-        <div class="form-group"><label for="efRoom">Room ID</label><input id="efRoom" name="RoomID" required readonly></div>
-        <div class="form-group"><label for="efPC">PC Number (00‑40)</label><input id="efPC" name="PCNumber" required maxlength="2"></div>
-        <div class="form-group"><label for="efInstalled">Installed At</label><input type="date" id="efInstalled" name="InstalledAt" required></div>
-        <div class="form-group"><label for="efMake">Make / Model</label><input id="efMake" name="MakeModel" required></div>
-        <div class="form-group"><label for="efSerial">Serial #</label><input id="efSerial" name="SerialNumber" required></div>
-        <div class="form-group"><label for="efCPU">CPU</label><input id="efCPU" name="CPU"></div>
-        <div class="form-group"><label for="efGPU">GPU</label><input id="efGPU" name="GPU"></div>
-        <div class="form-group"><label for="efRAM">RAM (GB)</label><input id="efRAM" name="RAM_GB" type="number" min="1"></div>
-        <div class="form-group"><label for="efStorage">Storage (GB)</label><input id="efStorage" name="Storage_GB" type="number" min="1"></div>
-        <div class="modal-buttons"><button type="button" id="editCancel" class="btn-light">Cancel</button><button type="submit" class="btn-primary">Save</button></div>
+        <div class="form-group">
+          <label for="efRoom">Room ID</label>
+          <input id="efRoom" name="RoomID" required readonly>
+        </div>
+        <div class="form-group">
+          <label for="efPC">PC Number (00-40)</label>
+          <input id="efPC" name="PCNumber" required maxlength="2" readonly>
+        </div>
+        <div class="form-group">
+          <label for="efInstalled">Installed At</label>
+          <input type="date" id="efInstalled" name="InstalledAt" required>
+        </div>
+        <div class="form-group">
+          <label for="efMake">Make / Model</label>
+          <input id="efMake" name="MakeModel" required>
+        </div>
+        <div class="form-group">
+          <label for="efSerial">Serial #</label>
+          <input id="efSerial" name="SerialNumber" required>
+        </div>
+        <div class="form-group">
+          <label for="efCPU">CPU</label>
+          <input id="efCPU" name="CPU">
+        </div>
+        <div class="form-group">
+          <label for="efGPU">GPU</label>
+          <input id="efGPU" name="GPU">
+        </div>
+        <div class="form-group">
+          <label for="efRAM">RAM (GB)</label>
+          <input id="efRAM" name="RAM_GB" type="number" min="1">
+        </div>
+        <div class="form-group">
+          <label for="efStorage">Storage (GB)</label>
+          <input id="efStorage" name="Storage_GB" type="number" min="1">
+        </div>
+        <div class="modal-buttons">
+          <button type="button" id="editCancel" class="btn-light">Cancel</button>
+          <button type="submit" class="btn-primary">Save</button>
+        </div>
       </form>
-    </div> 
+    </div>
   </div>
 </body>
 </html>
