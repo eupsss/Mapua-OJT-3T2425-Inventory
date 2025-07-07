@@ -5,6 +5,12 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import session from 'express-session';
 
+import * as exportSqlModule from './routes/exportSql.js';   // grab *everything*
+const exportSqlRouter = exportSqlModule.default            // prefer default
+                      || exportSqlModule.exportSqlRouter;  // …else named
+console.log('🔍 exportSqlRouter type →', typeof exportSqlRouter);
+
+
 // ────────────────────────────────────────────────────────────────
 // Compute __dirname and static directory
 // ────────────────────────────────────────────────────────────────
@@ -37,11 +43,12 @@ import fix            from './routes/fix.js';
 import assetsRouter   from './routes/assets.js';
 import reportsRouter  from './routes/reports.js';
 import computerAssets from './routes/computerAssets.js';
+// import exportSqlRouter from './routes/exportSql.js';   // default import
 import insightsRouter from './routes/insights.js';    // <— your new proxy
 import defectsTrend     from './routes/defects-trend.js';
 import issuesOverTime    from './routes/issues-over-time.js';
 import roomUptime        from './routes/room-uptime.js';
-
+import adminUsers from './routes/adminUsers.js';
 
 // ────────────────────────────────────────────────────────────────
 // Create Express app & middleware
@@ -82,6 +89,8 @@ app.use('/api/computer-assets',  computerAssets);
 app.use('/api/defects-trend',      defectsTrend);
 app.use('/api/issues-over-time',   issuesOverTime);
 app.use('/api/room-uptime',        roomUptime);
+app.use('/api/exportSQL', exportSqlRouter);
+app.use('/api/adminUsers', adminUsers);
 
 // ← Mount the new insights proxy **before** the catch-all 404:
 app.post('/api/insights-test', (req, res) => {

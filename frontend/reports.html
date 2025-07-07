@@ -1,11 +1,12 @@
+<!-- reports.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Reports - Mapua Inventory</title>
+  <title>Reports - Mapúa Inventory</title>
 
-  <!-- Palette variables & your global CSS -->
+  <!-- Palette variables & global CSS -->
   <style>
     :root {
       --color-primary: #C8102E;
@@ -15,40 +16,35 @@
     }
   </style>
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="reports.css"><!-- NEW -->
-  <!-- page-specific JS -->
+  <link rel="stylesheet" href="reports.css" />
   <script defer src="reports.js"></script>
 </head>
 <body>
   <!-- Sidebar -->
   <aside class="sidebar">
-    <div class="brand">
-      <img src="../icons/logo.png" alt="Logo" class="logo" />
-      <h1>Inventory</h1>
+    <div class="sidebar-profile">
+      <div class="avatar"></div>
+      <div class="user-name"></div>
     </div>
-    <nav>
+    <nav class="sidebar-nav">
       <ul>
-        <li><a href="index.html">📊 Dashboard</a></li>
-        <li><a href="rooms.html">🏠 Rooms</a></li>
-        <li><a href="assets.html">💻 Assets</a></li>
-        <li class="active"><a href="reports.html">📑 Reports</a></li>
-        <li><a href="settings.html">⚙️ Settings</a></li>
+        <li><a href="dashboard.html"><span class="icon">📊</span><span class="label">Dashboard</span></a></li>
+        <li><a href="rooms.html"><span class="icon">🏠</span><span class="label">Rooms</span></a></li>
+        <li><a href="assets.html"><span class="icon">💻</span><span class="label">Assets</span></a></li>
+        <li class="active"><a href="reports.html"><span class="icon">📑</span><span class="label">Reports</span></a></li>
+        <li><a href="settings.html"><span class="icon">⚙️</span><span class="label">Settings</span></a></li>
+                <li>
+          <a href="users.html">
+            <span class="icon">🧑</span>
+            <span class="label">Users</span>
+          </a>
+        </li>
       </ul>
     </nav>
-    <!-- sign-out at bottom -->
-    <div style="margin-top:auto; padding:1rem;">
-      <button id="btnSignOut" 
-              style="
-                width:100%;
-                padding:0.75rem;
-                background:var(--color-primary);
-                color:white;
-                border:none;
-                border-radius:4px;
-                cursor:pointer;
-              ">
-        Sign Out
-      </button>
+    <div class="sidebar-footer">
+      <button class="export-btn">📄 Export PDF</button>
+      <button id="export-sql-btn">🗄️ Export SQL</button>
+      <button id="signout-btn">🔒 Sign Out</button>
     </div>
   </aside>
 
@@ -64,22 +60,45 @@
     <main>
       <section class="details">
         <h4>Change Log</h4>
-<table id="reportsTable">
-  <thead>
-    <tr>
-      <th>Ticket #</th>
-      <th>Date</th>
-      <th>Room</th>
-      <th>PC #</th>
-      <th>Status</th>
-      <th>Issues</th>
-      <th>Fixed On</th>
-      <th>Fixed By</th>       <!-- NEW COLUMN -->
-      <th>Recorded By</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+
+        <!-- Filter bar -->
+        <div class="filter-bar">
+          <!-- Left: dynamic dropdown filters -->
+          <div class="filter-dropdowns">
+            <div class="dropdown" data-field="Status">
+              <button class="filter-btn">Status</button> <span class="caret">▾</span></button>
+              <ul class="dropdown-menu"></ul>
+            </div>
+            <div class="dropdown" data-field="RoomID">
+              <button class="filter-btn">Room <span class="caret">▾</span></button>
+              <ul class="dropdown-menu"></ul>
+            </div>
+          </div>
+
+          <!-- Right: date filter -->
+          <div class="filter-date">
+            <label for="fixed-date-filter">Fixed Date:</label>
+            <input type="date" id="fixed-date-filter"/>
+            <button id="clear-date-filter">Clear</button>
+          </div>
+        </div>
+
+        <table id="reportsTable">
+          <thead>
+            <tr>
+              <th data-sort="ServiceTicketID">Ticket #</th>
+              <th data-sort="CheckDate">Date</th>
+              <th data-sort="RoomID">Room</th>
+              <th data-sort="PCNumber">PC #</th>
+              <th data-sort="Status">Status</th>
+              <th data-sort="Issues">Issues</th>
+              <th data-sort="FixedOn">Fixed On</th>
+              <th data-sort="FixedBy">Fixed By</th>
+              <th data-sort="RecordedBy">Recorded By</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </section>
     </main>
   </div>

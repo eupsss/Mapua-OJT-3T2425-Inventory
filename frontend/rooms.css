@@ -1,150 +1,183 @@
-/* ─── Rooms-only overrides ───────────────────────────────── */
-
-/* 1️⃣  Two-block PC grid with a spacer */
+/*───────────────────────────────────────────────────────────────
+   1. PC Grid Layout
+────────────────────────────────────────────────────────────────*/
 .pc-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr) 5rem repeat(4, 1fr);
   grid-auto-rows: 120px;
   gap: 2rem;
 }
-/* ─── Config-2 override ─────────────────────────────────────────── */
 .pc-grid.config-2 {
-  /* 3 cols on the left, 5 rem aisle, 5 cols on the right */
-  grid-template-columns: repeat(3, 1fr) 5rem repeat(5, 1fr) !important;
+  grid-template-columns: repeat(5, 1fr) 5rem repeat(3, 1fr);
+}
+@media (max-width: 768px) {
+  .pc-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
 }
 
-
-/* 2️⃣  Card visuals */
+/*───────────────────────────────────────────────────────────────
+   2. PC Card Visuals
+────────────────────────────────────────────────────────────────*/
 .pc-card {
   background: var(--color-white);
   border: 2px solid transparent;
   border-radius: 8px;
   padding: 0.75rem;
-  text-align: center;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
 }
-.pc-card:hover       { transform: translateY(-4px); box-shadow: 0 4px 8px rgb(0 0 0 / .1); }
-.pc-card.selected    { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(200,16,46,.2); }
-.pc-number           { margin-top: .35rem; font-weight: 600; color: var(--color-text); }
-.pc-icon             { width: 36px; height: 36px; user-select: none; transition: transform .2s; }
-.pc-card:hover .pc-icon { transform: scale(1.1); }
+.pc-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.pc-card.selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(200,16,46,0.2);
+}
+.pc-icon {
+  width: 36px; height: 36px;
+  transition: transform 0.2s;
+}
+.pc-card:hover .pc-icon {
+  transform: scale(1.1);
+}
+.pc-number {
+  margin-top: 0.35rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.pc-card[data-status="Working"] {
+  background: #e5ffe5;
+}
+.pc-card[data-status="Working"] .pc-number {
+  color: #238636;
+}
+.pc-card[data-status="Defective"] {
+  background: #ffe5e5;
+}
+.pc-card[data-status="Defective"] .pc-number {
+  color: var(--color-primary);
+}
 
-/* Status colours */
-.pc-card[data-status="Working"]  { background: #e5ffe5; }
-.pc-card[data-status="Defective"]{ background: #ffe5e5; }
-.pc-card[data-status="Working"]  .pc-number { color: #238636; }
-.pc-card[data-status="Defective"].pc-number { color: var(--color-primary); }
-
-/* 3️⃣  Room selector */
+/*───────────────────────────────────────────────────────────────
+   3. Room Selector & Buttons
+────────────────────────────────────────────────────────────────*/
 .room-selector {
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
+  gap: 0.75rem;
 }
-.room-selector label  { margin-right: 0.5rem; font-weight: bold; color: var(--color-primary); }
+.room-selector label { font-weight: bold; color: var(--color-primary); }
 .room-selector select {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: var(--color-white);
-  color: var(--color-text);
+  padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;
+  background: var(--color-white); color: var(--color-text);
   transition: border-color 0.2s;
 }
 .room-selector select:focus { outline: none; border-color: var(--color-primary); }
 
-/* 4️⃣  Modal backdrop & panel */
-.modal          { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: flex;
-                  align-items: center; justify-content: center; z-index: 2000; }
-.modal.hidden   { display: none; }
-.modal-content  { background: var(--color-white); border-radius: 8px; padding: 1.5rem;
-                  width: 90%; max-width: 400px; box-shadow: 0 6px 20px rgba(0,0,0,.2);
-                  animation: slideDown .3s ease; }
-@keyframes slideDown { from {transform:translateY(-20px); opacity:0;}
-                       to   {transform:translateY(0);    opacity:1;} }
-
-/* 5️⃣  Issues & fix-form styling (same as before) */
-.issues-list { display:grid; grid-template-columns:repeat(2,1fr); gap:.5rem 1rem; margin-bottom:1.25rem; }
-.issues-list label { display:flex; align-items:center; font-size:.9rem; }
-.issues-list input { margin-right:.5rem; }
-
-.modal-buttons    { text-align:right; }
-.modal-buttons button { margin-left:.5rem; padding:.5rem 1rem; border:none; border-radius:4px;
-                        cursor:pointer; font-size:.9rem; }
-#defectCancel, #fixCancel { background:#ddd; color:#333; }
-#defectConfirm, .btn-primary { background:var(--color-primary); color:#fff; }
-#defectConfirm:hover, .btn-primary:hover { background:var(--color-primary-dark); }
-
-.fix-form .form-group { margin-bottom:1rem; }
-.fix-form label       { display:block; font-size:.9rem; font-weight:600; margin-bottom:.35rem; color:var(--color-text); }
-.fix-form input[type="datetime-local"],
-.fix-form input[list] { width:100%; padding:.55rem .75rem; border:1px solid #ccc; border-radius:4px;
-                        font-size:.95rem; transition:border-color .2s; }
-.fix-form input:focus { outline:none; border-color:var(--color-primary); }
-
-/* 6️⃣  Make everything stack gracefully on narrow screens */
-@media (max-width: 768px) {
-  .pc-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-}
-
-.room-selector {
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;    /* add horizontal spacing */
-}
-
 #bulkCheck {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  border: none;
-  cursor: pointer;
+  padding: 0.5rem 1rem; border: none; border-radius: 4px;
+  background: var(--color-primary); color: #fff;
+  font-size: 0.9rem; cursor: pointer;
+  transition: background 0.2s;
+}
+#bulkCheck:hover { background: var(--color-primary-dark); }
+
+.btn-add-room {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.45rem 0.75rem; font-size: 0.9rem; font-weight: 600;
+  color: var(--color-primary); background: transparent;
+  border: 2px dashed var(--color-primary); border-radius: 4px;
+  transition: all 0.2s ease;
+}
+.btn-add-room:hover {
+  background: var(--color-primary); color: var(--color-white);
+  border-color: var(--color-primary-dark); transform: translateY(-2px);
 }
 
-#bulkCheck:hover {
+/*───────────────────────────────────────────────────────────────
+   4. Modal Overlay & Panel
+────────────────────────────────────────────────────────────────*/
+.modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2000;
+}
+.modal.hidden { display: none; }
+.modal-content {
+  background: var(--color-white); border-radius: 8px;
+  padding: 1.5rem; width: 90%; max-width: 800px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  animation: slideDown 0.3s ease; font-size: 1rem;
+}
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/*───────────────────────────────────────────────────────────────
+   5. Issue List (Defect Form)
+────────────────────────────────────────────────────────────────*/
+.issues-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(150px,1fr));
+  gap: 1rem 2rem; margin-bottom: 1.5rem;
+}
+.issues-list label {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  font-size: 1rem; padding: 0.5rem 0.75rem;
+}
+.other-input-wrapper {
+  grid-column: 1 / -1; /* full width */
+}
+.other-input {
+  width: 100%; padding: 0.4rem 0.6rem;
+  font-size: 1rem; border: 1px solid #ccc; border-radius: 4px;
+}
+.hidden { display: none !important; }
+
+/*───────────────────────────────────────────────────────────────
+   6. Modal Buttons
+────────────────────────────────────────────────────────────────*/
+.modal-buttons { text-align: right; }
+.modal-buttons button {
+  margin-left: 0.5rem; padding: 0.5rem 1rem;
+  border: none; border-radius: 4px; cursor: pointer;
+  font-size: 1rem;
+}
+#defectCancel, #fixCancel {
+  background: #ddd; color: #333;
+}
+.btn-primary {
+  background: var(--color-primary); color: #fff;
+}
+.btn-primary:hover {
   background: var(--color-primary-dark);
 }
-/* When the grid has the “config-2” class, 
-   show 5 columns, aisle, then 3 columns */
-.pc-grid.config-2 {
-  grid-template-columns: repeat(5, 1fr) 5rem repeat(3, 1fr);
-}
-/* ─── Add Room button ─────────────────────────────────────── */
-.btn-add-room {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.45rem 0.75rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--color-primary);
-  background: transparent;
-  border: 2px dashed var(--color-primary);
-  border-radius: 4px;
-  transition: 
-    background 0.2s ease, 
-    color 0.2s ease, 
-    border-color 0.2s ease, 
-    transform 0.2s ease;
-}
 
-.btn-add-room .icon-plus {
-  flex-shrink: 0;
+/*───────────────────────────────────────────────────────────────
+   7. Fix Form
+────────────────────────────────────────────────────────────────*/
+.fix-form .form-group { margin-bottom: 1rem; }
+.fix-form label {
+  display: block; font-size: 0.9rem; font-weight: 600;
+  margin-bottom: 0.35rem; color: var(--color-text);
 }
-
-.btn-add-room:hover {
-  background: var(--color-primary);
-  color: var(--color-white);
-  border-color: var(--color-primary-dark);
-  transform: translateY(-2px);
+.fix-form input[type="datetime-local"],
+.fix-form input[list] {
+  width: 100%; padding: 0.55rem 0.75rem;
+  border: 1px solid #ccc; border-radius: 4px;
+  font-size: 0.95rem; transition: border-color 0.2s;
 }
+.fix-form input:focus { outline: none; border-color: var(--color-primary); }
 
-.btn-add-room:active {
-  transform: translateY(0);
-  opacity: 0.9;
+@media (max-width: 600px) {
+  .issues-list { grid-template-columns: 1fr 1fr; }
 }

@@ -1,138 +1,90 @@
-/* ───── 0. Login guard ───────────────────────────────────────────── */
+// rooms.js
+console.log('▶️ rooms.js loaded');
+
+// ───── 0. Login guard ─────────────────────────────────────────
 const user = JSON.parse(sessionStorage.getItem('user'));
 if (!user) {
   alert('Access denied – please sign in.');
   location.href = 'login.html';
 }
 
-/*************************************************
- * 1)  Convenience helpers
- *************************************************/
+// ───── 1. Convenience helpers ─────────────────────────────────
 const $  = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
-const todayISO         = () => new Date().toISOString().split('T')[0];
-const nowDateTimeLocal = () => new Date().toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
+const nowDateTimeLocal = () => new Date().toISOString().slice(0,16);
 const API_BASE = '../api/';
 
-/*************************************************
- * 2)  Module-scope state
- *************************************************/
-let pending       = null;   // defect report in progress
-let currentCard   = null;   // fix dialog current card
-let userRoster    = [];     // users for fixer autocomplete
-let currentConfig = 1;      // layout of currently selected room
+// ───── 2. State & DOM refs ────────────────────────────────────
+let pending     = null;
+let currentCard = null;
+let userRoster  = [];
+let currentConfig = 1;
 
-/*************************************************
- * 3)  DOM refs  (set on DOMContentLoaded)
- *************************************************/
 let roomSelect, pcGrid,
     defectModal, defectForm, btnDefectCancel,
-    fixModal,    fixForm,    fixDateTime, fixerInput, fixerList, btnFixCancel,
+    otherCheckbox, otherWrapper, otherTextInput,
+    fixModal, fixForm, fixDateTime, fixerInput, fixerList, btnFixCancel,
     checkAllBtn,
-    roomModal,   roomForm,   roomCancel,  addRoomBtn;
+    roomModal, roomForm, roomCancel, addRoomBtn,
+    signOutBtn;
 
-/*************************************************
- * 4)  Fetch helper
- *************************************************/
+// ───── 3. fetchJSON helper ─────────────────────────────────────
 async function fetchJSON(url, opts = {}) {
-  const res = await fetch(url, {
-    credentials: 'same-origin',
-    ...opts
-  });
-  const payload = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(payload.error || res.statusText);
-  return payload;
+  const res = await fetch(url, { credentials:'same-origin', ...opts });
+  const json = await res.json().catch(()=>({}));
+  if (!res.ok) throw new Error(json.error||res.statusText);
+  return json;
 }
 
-/* update-status – mark PC Working/Defective */
-async function updateStatus(roomID, pcNumber, status, issues) {
-  const payload = { roomID, pcNumber, status, issues, userID: user.id };
-  const j = await fetchJSON(API_BASE + 'update-status', {
-    method : 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body   : JSON.stringify(payload)
-  });
-  if (!j.success) throw new Error(j.error || 'API error');
-}
-
-/*************************************************
- * 5)  UI helpers
- *************************************************/
-function positionFor(pc, cfg = 1) {
-  const n = Number(pc);
-
-  /* CONFIG 1 – original 8×5 lab (41 PCs) */
+// ───── 4. Layout & styling ────────────────────────────────────
+function positionFor(n, cfg) {
+  if (isNaN(n)) return {row:1,col:1};
   if (cfg === 1) {
-    if (n === 0) return { row: 1, col: 9 };
-    const logicalRow = Math.ceil(n / 8);
-    const row        = logicalRow + 1;
-    const idx        = (n - 1) % 8;
-    return { row, col: idx < 4 ? 9 - idx : 8 - idx };
+    if (n === 0) return {row:1,col:9};
+    const row = Math.ceil(n/8) + 1, idx = (n-1)%8;
+    return { row, col: idx<4?9-idx:8-idx };
   }
-
-  /* CONFIG 2 – 5 on the right, 3 on the left (aisle at col 4) */
   if (cfg === 2) {
-    if (n === 0) return { row: 1, col: 9 };
-    const logicalRow = Math.ceil(n / 8);
-    const row        = logicalRow + 1;
-    const idx        = (n - 1) % 8;
-    // idx 0-4 → cols 9,8,7,6,5 ; idx 5-7 → cols 3,2,1
-    return { row, col: idx < 5 ? 9 - idx : 8 - idx };
+    if (n === 0) return {row:1,col:9};
+    const row = Math.ceil(n/8) + 1, idx = (n-1)%8;
+    return { row, col: idx<5?9-idx:8-idx };
   }
-
-  /* fallback – left→right, 10 columns */
-  const idx = n - 1;
-  return {
-    row: Math.floor(idx / 10) + 2,
-    col: (idx % 10) + 1
-  };
+  const idx = n-1;
+  return { row: Math.floor(idx/10)+2, col: (idx%10)+1 };
 }
 
 function setCardVisual(card, status) {
   card.dataset.status = status;
-  card.classList.toggle('selected', status === 'Defective');
-  const icon = $('img', card);
-  if (icon) {
-    const imgName = status === 'Working' ? 'Available' : 'defective';
-    icon.src = `../icons/${imgName}.png`;
-    icon.alt = status;
-  }
-  const label = $('span.pc-number', card);
-  if (label) {
-    label.style.color =
-      status === 'Working' ? '#238636' : 'var(--color-primary)';
-  }
+  card.classList.toggle('selected', status==='Defective');
+  const img = $('img', card);
+  img.src = `../icons/${status==='Working'?'Available':'defective'}.png`;
+  img.alt = status;
+  $('span.pc-number', card).style.color =
+    status==='Working' ? '#238636' : 'var(--color-primary)';
 }
 
-/*************************************************
- * 6)  Build one PC card
- *************************************************/
-function makeCard(roomID, { PCNumber, Status }) {
-  const num = Number(PCNumber);
-  if (isNaN(num)) return;
-
-  const initStatus = Status === 'Defective' ? 'Defective' : 'Working';
+// ───── 5. Build a PC card ──────────────────────────────────────
+function makeCard(roomID, { PCNumber, Status, ServiceTicketID }) {
   const card = document.createElement('div');
-  card.className  = 'pc-card';
-  card.dataset.pc = PCNumber;
+  card.className = 'pc-card';
+  card.dataset.pc     = PCNumber;
+  card.dataset.ticket = ServiceTicketID || '';
   card.innerHTML = `
-    <img class="pc-icon"
-         src="../icons/${initStatus === 'Working' ? 'Available' : 'defective'}.png"
-         alt="${initStatus}">
+    <img class="pc-icon" src="../icons/${Status==='Working'?'Available':'defective'}.png" alt="${Status}">
     <span class="pc-number">${PCNumber}</span>
   `;
-
-  setCardVisual(card, initStatus);
-  const { row, col } = positionFor(PCNumber, currentConfig);
+  setCardVisual(card, Status);
+  const {row, col} = positionFor(Number(PCNumber), currentConfig);
   card.style.gridRow    = row;
   card.style.gridColumn = col;
-
   card.addEventListener('click', () => {
     if (card.dataset.status === 'Working') {
-      pending = { card, roomID, pcNumber: PCNumber };
+      // defect flow
+      pending = { card, roomID, pc: PCNumber };
       defectModal.classList.remove('hidden');
     } else {
-      currentCard           = card;
+      // fix flow
+      currentCard = card;
       fixModal.dataset.room = roomID;
       fixModal.dataset.pc   = PCNumber;
       fixDateTime.value     = nowDateTimeLocal();
@@ -141,90 +93,111 @@ function makeCard(roomID, { PCNumber, Status }) {
       fixerInput.focus();
     }
   });
-
   pcGrid.appendChild(card);
 }
 
-/*************************************************
- * 7)  Load users into datalist
- *************************************************/
+// ───── 6. Load users ───────────────────────────────────────────
 async function loadUsers() {
   try {
     userRoster = await fetchJSON(API_BASE + 'users');
     fixerList.innerHTML = userRoster
       .map(u => `<option value="${u.fullName}" data-id="${u.userId}">`)
       .join('');
-  } catch (err) {
-    console.error(err);
-    alert('Unable to load user list – fix logging disabled.');
+  } catch (e) {
+    console.error('loadUsers failed', e);
   }
 }
 
-/*************************************************
- * 8)  Rooms + PCs
- *************************************************/
+// ───── 7. Load rooms ───────────────────────────────────────────
 async function loadRooms() {
   try {
     const rooms = await fetchJSON(API_BASE + 'rooms');
+    roomSelect.innerHTML = '<option value="">-- Choose a room --</option>';
     rooms.forEach(r => {
-      const opt = document.createElement('option');
-      opt.value          = r.RoomID;
-      opt.textContent    = r.RoomID;
-      opt.dataset.config = r.Room_Config ?? 1;
-      opt.dataset.pcnum  = r.PC_NUM     ?? 41;
-      roomSelect.appendChild(opt);
+      const o = document.createElement('option');
+      o.value = r.RoomID;
+      o.textContent = r.RoomID;
+      o.dataset.config = r.Room_Config;
+      roomSelect.appendChild(o);
     });
-  } catch (err) {
-    console.error('rooms route failed', err);
+  } catch (e) {
+    console.error('loadRooms failed', e);
   }
 }
 
+// ───── 8. Load PCs ─────────────────────────────────────────────
 async function loadPCs(roomID) {
   pcGrid.innerHTML = '';
   if (!roomID) return;
   try {
-    const pcs = await fetchJSON(
-      `${API_BASE}pcs?room=${encodeURIComponent(roomID)}`
-    );
+    const pcs = await fetchJSON(`${API_BASE}pcs?room=${roomID}`);
     pcs.forEach(pc => makeCard(roomID, pc));
-  } catch (err) {
-    console.error('pcs route failed', err);
+  } catch (e) {
+    console.error('loadPCs failed', e);
   }
 }
 
-/*************************************************
- * 9)  Modal handlers – Defect
- *************************************************/
+// ───── 9. Defect modal ─────────────────────────────────────────
 function wireDefectModal() {
   btnDefectCancel.addEventListener('click', () => {
-    defectModal.classList.add('hidden');
     defectForm.reset();
+    otherWrapper.classList.add('hidden');
+    defectModal.classList.add('hidden');
     pending = null;
+  });
+
+  otherCheckbox.addEventListener('change', () => {
+    if (otherCheckbox.checked) {
+      otherWrapper.classList.remove('hidden');
+      otherTextInput.focus();
+    } else {
+      otherWrapper.classList.add('hidden');
+      otherTextInput.value = '';
+    }
   });
 
   defectForm.addEventListener('submit', async e => {
     e.preventDefault();
     if (!pending) return;
-    const issues = $$('input[name="issues"]:checked', defectForm)
-      .map(cb => cb.value);
-    const { card, roomID, pcNumber } = pending;
+    let issues = $$('input[name="issues"]:checked', defectForm).map(cb=>cb.value);
+    if (issues.includes('Other')) {
+      const txt = otherTextInput.value.trim();
+      issues = txt ? issues.filter(i=>'Other'!==i).concat(txt)
+                   : issues.filter(i=>'Other'!==i);
+    }
+
+    const { card, roomID, pc } = pending;
     defectModal.classList.add('hidden');
     defectForm.reset();
+    otherWrapper.classList.add('hidden');
     pending = null;
+
     setCardVisual(card, 'Defective');
+
     try {
-      await updateStatus(roomID, pcNumber, 'Defective', issues);
+      // report defect, receive ticketID
+      const { serviceTicketID } = await fetchJSON(API_BASE + 'update-status', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({
+          roomID,
+          pcNumber: pc,
+          status: 'Defective',
+          issues,
+          userID: user.id
+        })
+      });
+      // stash ticket on card
+      card.dataset.ticket = serviceTicketID;
     } catch (err) {
-      console.error('update-status:', err.message);
-      alert('Failed to report defect:\n' + err.message);
+      console.error(err);
+      alert('Failed to report defect');
       setCardVisual(card, 'Working');
     }
   });
 }
 
-/*************************************************
- * 10)  Modal handlers – Fix
- *************************************************/
+// ───── 10. Fix modal ────────────────────────────────────────────
 function wireFixModal() {
   btnFixCancel.addEventListener('click', () => {
     fixModal.classList.add('hidden');
@@ -234,142 +207,138 @@ function wireFixModal() {
   fixForm.addEventListener('submit', async e => {
     e.preventDefault();
     const roomID   = fixModal.dataset.room;
-    const pcNumber = fixModal.dataset.pc;
+    const pc       = fixModal.dataset.pc;
     const fixedOn  = fixDateTime.value;
-    const fixer    = fixerInput.value.trim();
-    const userItem = userRoster.find(u => u.fullName === fixer);
-    if (!userItem) {
-      alert('Please pick a name from the list.');
-      return fixerInput.focus();
+    const name     = fixerInput.value.trim();
+    const usr      = userRoster.find(u => u.fullName === name);
+    if (!usr) return alert('Pick a name from the list');
+
+    const serviceTicketID = currentCard.dataset.ticket;
+    if (!serviceTicketID) {
+      return alert('Missing ticket ID – please report the defect first');
     }
+
     try {
-      await fetchJSON(`${API_BASE}fix`, {
-        method : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({
-          roomID, pcNumber, fixedOn, fixedBy: userItem.userId
+      await fetchJSON(API_BASE + 'fix', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({
+          roomID,
+          pcNumber: pc,
+          fixedOn,
+          fixedBy: usr.userId,
+          serviceTicketID
         })
       });
-      if (currentCard) setCardVisual(currentCard, 'Working');
-      currentCard = null;
+      setCardVisual(currentCard, 'Working');
       fixModal.classList.add('hidden');
+      currentCard = null;
     } catch (err) {
       console.error(err);
-      alert('Could not log fix.');
+      alert('Could not log fix');
     }
   });
 }
 
-/*************************************************
- * 11)  Bulk Check All
- *************************************************/
+// ───── 11. Bulk “Check All” ────────────────────────────────────
 function wireCheckAll() {
   checkAllBtn.addEventListener('click', async () => {
     const roomID = roomSelect.value;
-    if (!roomID) {
-      alert('Please select a room first.');
-      return;
-    }
-    const cards = $$('.pc-card');
-    if (!cards.length) {
-      alert('No PCs to check in this room.');
-      return;
-    }
+    if (!roomID) return alert('Select a room first');
     if (!confirm('Mark all PCs as Working?')) return;
+    const cards = $$('.pc-card');
     try {
       await Promise.all(cards.map(card => {
-        const pcNumber = card.dataset.pc;
         setCardVisual(card, 'Working');
-        return updateStatus(roomID, pcNumber, 'Working', []);
+        return fetchJSON(API_BASE+'update-status', {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify({
+            roomID,
+            pcNumber: card.dataset.pc,
+            status: 'Working',
+            issues: [],
+            userID: user.id
+          })
+        });
       }));
-      alert('All PCs marked as Working successfully.');
+      alert('All PCs marked Working');
     } catch (err) {
       console.error(err);
-      alert('Failed to check all PCs:\n' + err.message);
+      alert('Failed to check all');
       loadPCs(roomID);
     }
   });
 }
 
-/*************************************************
- * 12)  Add-Room Modal
- *************************************************/
+// ───── 12. Add-Room modal ───────────────────────────────────────
 function wireAddRoomModal() {
-  addRoomBtn.addEventListener('click', () => {
-    roomModal.classList.remove('hidden');
-    $('#roomID').focus();
-  });
-
-  roomCancel.addEventListener('click', () => {
-    roomModal.classList.add('hidden');
-    roomForm.reset();
-  });
-
+  addRoomBtn.addEventListener('click', () => roomModal.classList.remove('hidden'));
+  roomCancel.addEventListener('click', () => roomModal.classList.add('hidden'));
   roomForm.addEventListener('submit', async e => {
     e.preventDefault();
-    const roomID     = $('#roomID').value.trim().toUpperCase();
-    const roomConfig = Number($('#roomConfig').value) || 1;
-    const pcNum      = Number($('#pcNum').value)      || 41;
-    if (!roomID) return alert('Room ID is required.');
+    const payload = {
+      roomID:     $('#roomID').value.trim().toUpperCase(),
+      roomConfig:+$('#roomConfig').value || 1,
+      pcNum:     +$('#pcNum').value     || 41
+    };
     try {
-      await fetchJSON(API_BASE + 'rooms', {
-        method : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ roomID, roomConfig, pcNum })
+      await fetchJSON(API_BASE+'rooms', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
       });
-      alert('Room added successfully.');
+      alert('Room added');
       roomModal.classList.add('hidden');
-      roomForm.reset();
-      roomSelect.innerHTML =
-        '<option value="">-- Choose a room --</option>';
-      await loadRooms();
+      loadRooms();
     } catch (err) {
       console.error(err);
-      alert('Unable to add room:\n' + err.message);
+      alert('Unable to add room');
     }
   });
 }
 
-/*************************************************
- * 13)  Bootstrap – DOMContentLoaded
- *************************************************/
+// ───── 13. Bootstrap ───────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  $('.username').textContent = user.name || 'Admin';
-  const userNameEl  = document.querySelector('.user-name');
-  const avatarEl = document.querySelector('.avatar');
-  if (avatarEl) {
-    const initials = user.name
-      .split(' ')
-      .map(n => n[0]?.toUpperCase() || '')
-      .join('')
-      .slice(0,2);
-    avatarEl.textContent = initials;
-  }
-  if (userNameEl)  userNameEl.textContent  = user.name;
+  // DOM refs
+  roomSelect       = $('#room-select');
+  pcGrid           = $('.pc-grid');
+  defectModal      = $('#defectModal');
+  defectForm       = $('#defectForm');
+  btnDefectCancel  = $('#defectCancel');
+  otherCheckbox    = $('#issue-other-checkbox');
+  otherWrapper     = document.querySelector('.other-input-wrapper');
+  otherTextInput   = $('#issue-other-text');
+  fixModal         = $('#fixModal');
+  fixForm          = $('#fixForm');
+  fixDateTime      = $('#fixDateTime');
+  fixerInput       = $('#fixerInput');
+  fixerList        = $('#fixerList');
+  btnFixCancel     = $('#fixCancel');
+  checkAllBtn      = $('#bulkCheck');
+  roomModal        = $('#roomModal');
+  roomForm         = $('#roomForm');
+  roomCancel       = $('#roomCancel');
+  addRoomBtn       = $('#addRoomBtn');
+  signOutBtn       = $('#signout-btn');
 
-  /* Grab elements */
-  roomSelect      = $('#room-select');
-  pcGrid          = $('.pc-grid');
+  // show user
+  $('.username').textContent = user.name;
+  $('.user-name').textContent = user.name;
+  document.querySelectorAll('.avatar').forEach(el => {
+    const initials = user.name.split(' ')
+                       .map(n => n[0].toUpperCase())
+                       .join('').slice(0,2);
+    el.textContent = initials;
+  });
 
-  defectModal     = $('#defectModal');
-  defectForm      = $('#defectForm');
-  btnDefectCancel = $('#defectCancel');
+  // sign-out
+  signOutBtn.addEventListener('click', ()=> {
+    sessionStorage.removeItem('user');
+    location.href = 'login.html';
+  });
 
-  fixModal        = $('#fixModal');
-  fixForm         = $('#fixForm');
-  fixDateTime     = $('#fixDateTime');
-  fixerInput      = $('#fixerInput');
-  fixerList       = $('#fixerList');
-  btnFixCancel    = $('#fixCancel');
-
-  checkAllBtn     = $('#bulkCheck');
-
-  roomModal       = $('#roomModal');
-  roomForm        = $('#roomForm');
-  roomCancel      = $('#roomCancel');
-  addRoomBtn      = $('#addRoomBtn');
-
-  /* Initialize flows */
+  // init
   loadUsers();
   loadRooms();
   wireDefectModal();
@@ -377,11 +346,9 @@ document.addEventListener('DOMContentLoaded', () => {
   wireCheckAll();
   wireAddRoomModal();
 
-  /* Handle room config change (toggle CSS grid template) */
-  roomSelect.addEventListener('change', () => {
-    const sel = roomSelect.selectedOptions[0];
-    currentConfig = Number(sel?.dataset.config || 1);
-    pcGrid.classList.toggle('config-2', currentConfig === 2);
+  roomSelect.addEventListener('change', ()=> {
+    currentConfig = +roomSelect.selectedOptions[0].dataset.config || 1;
+    pcGrid.classList.toggle('config-2', currentConfig===2);
     loadPCs(roomSelect.value);
   });
 });

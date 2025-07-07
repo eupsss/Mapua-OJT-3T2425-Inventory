@@ -269,6 +269,15 @@ document.addEventListener('DOMContentLoaded', () => {
       alert(`You have ${count} new notification${count==='1'?'':'s'}.`);
     });
   }
+  const exportPdfBtn = document.getElementById('export-pdf-btn');
+  if (exportPdfBtn) {
+    exportPdfBtn.addEventListener('click', () => {
+      // grab the currently-selected month
+      const month = document.getElementById('month-filter')?.value || '';
+      // open export.html in a new tab, passing the month as a query param
+      window.open(`export.html?month=${encodeURIComponent(month)}`, '_blank');
+    });
+  }
 });
 
 /* ─── DASHBOARD REFRESH & CHART DRAWERS ───────────────────── */
@@ -573,37 +582,45 @@ async function drawUptimeChart(ym) {
   const res = await fetch(`${API_BASE}/room-uptime?month=${ym}`);
   if (!res.ok) return;
   const rows = await res.json();
+
   uptimeChart = setChart(
     uptimeChart,
     document.getElementById('roomUptimeChart').getContext('2d'),
     {
       type: 'bar',
       data: {
-        labels: rows.map(r=>r.RoomID),
-        datasets:[{
-          data: rows.map(r=>r.uptime_pct),
-          borderRadius:6,
-          barThickness:10
+        labels: rows.map(r => r.RoomID),
+        datasets: [{
+          label: 'Uptime %',           // give it a real label
+          data: rows.map(r => r.uptime_pct),
+          backgroundColor: getCSSVar('--color-primary'),
+          borderRadius: 6,
+          barThickness: 10
         }]
       },
       options: {
-        indexAxis:'y',
-        scales:{
-          x:{
-            beginAtZero:true,
-            max:100,
-            ticks:{ callback: v => `${v}%` }
+        indexAxis: 'y',
+        scales: {
+          x: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              callback: v => v + '%'
+            }
           }
         },
-        plugins:{
-          tooltip:{
-            callbacks:{ label: ctx => `${ctx.parsed.x.toFixed(1)}%` }
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.parsed.x.toFixed(1)}%`
+            }
           }
         }
       }
     }
   );
 }
+
 
 /* ─── Utility to read CSS vars ───────────────────────────── */
 function getCSSVar(name) {

@@ -1,60 +1,82 @@
 // routes/reports.js
-// GET  /api/reports
-// Returns a list of all service/check records for your reports table
-
 import express from 'express';
 import { pool } from '../db.js';
 
 const router = express.Router();
 
+// GET /api/reports — returns one row per PC with true current status
 router.get('/', async (req, res) => {
   try {
-    // Adjust `ServiceTickets` to match your actual table name
     const [rows] = await pool.execute(
-`SELECT
-  
-  l.ServiceTicketID,
+      `
+      SELECT
+        l.ServiceTicketID,
+        l.LoggedAt        AS CheckDate,
+        l.RoomID,
+        l.PCNumber,
 
+        /* use the live Computers.Status, not the log’s */
+        CASE 
+          WHEN c.Status = 'Working'  THEN 'Fixed'
+          ELSE 'Under Repair'
+        END                  AS Status,
 
-  DATE(l.LoggedAt)                       AS CheckDate,
-  l.RoomID,
-  l.PCNumber,
-  l.Status,
-  l.Issues,
+        l.Issues,
 
+        /* latest fix on or before this log */
+        (
+          SELECT DATE(fx.FixedAt)
+            FROM Fixes fx
+           WHERE fx.RoomID   = l.RoomID
+             AND fx.PCNumber = l.PCNumber
+             AND fx.FixedAt  <= l.LoggedAt
+           ORDER BY fx.FixedAt DESC
+           LIMIT 1
+        )                    AS FixedOn,
 
-  COALESCE(DATE(f.FixedAt),        '—')  AS FixedOn,
-  COALESCE(CONCAT(u2.FirstName,' ',u2.LastName), '—')
-                                         AS FixedBy,
+        (
+          SELECT CONCAT(u2.FirstName,' ',u2.LastName)
+            FROM Fixes fx
+            JOIN Users u2 ON u2.UserID = fx.FixedBy
+           WHERE fx.RoomID   = l.RoomID
+             AND fx.PCNumber = l.PCNumber
+             AND fx.FixedAt  <= l.LoggedAt
+           ORDER BY fx.FixedAt DESC
+           LIMIT 1
+        )                    AS FixedBy,
 
-  CONCAT(u1.FirstName,' ',u1.LastName)   AS RecordedBy
+        CONCAT(u1.FirstName,' ',u1.LastName) AS RecordedBy
 
-FROM   ComputerStatusLog AS l
+      FROM (
+        /* pick only the most recent log per PC */
+        SELECT l.*
+          FROM ComputerStatusLog l
+          JOIN (
+            SELECT RoomID, PCNumber, MAX(LoggedAt) AS LoggedAt
+              FROM ComputerStatusLog
+             GROUP BY RoomID, PCNumber
+          ) latest
+            ON l.RoomID   = latest.RoomID
+           AND l.PCNumber = latest.PCNumber
+           AND l.LoggedAt = latest.LoggedAt
+      ) AS l
 
+      /* join to get the true current status */
+      JOIN Computers AS c
+        ON c.RoomID   = l.RoomID
+       AND c.PCNumber = l.PCNumber
 
-LEFT JOIN Fixes AS f
-  ON f.FixID = (
-       SELECT fx.FixID
-       FROM   Fixes fx
-       WHERE  fx.RoomID   = l.RoomID
-         AND  fx.PCNumber = l.PCNumber
-         AND  fx.FixedAt  <= l.LoggedAt        -- key line
-       ORDER BY fx.FixedAt DESC
-       LIMIT 1
-     )
+      LEFT JOIN Users AS u1
+        ON u1.UserID = l.UserID
 
-
-LEFT JOIN Users AS u1 ON u1.UserID = l.UserID      
-LEFT JOIN Users AS u2 ON u2.UserID = f.FixedBy     
-
-ORDER BY l.LoggedAt DESC;`
+      ORDER BY l.LoggedAt DESC;
+      `
     );
 
-    return res.json(rows);
+    res.json(rows);
   } catch (err) {
- console.error('❌ /api/reports error:', err.stack || err);
-  // send the actual message back so we can see what’s wrong
-  return res.status(500).json({ error: err.message });
+    console.error('❌ /api/reports error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 

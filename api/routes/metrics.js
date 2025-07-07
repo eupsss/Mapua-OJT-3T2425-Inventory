@@ -12,6 +12,8 @@ function parseYearMonth(ym) {
   return [ now.getFullYear(), now.getMonth()+1 ];
 }
 
+// …snip…
+
 router.get('/', async (req, res, next) => {
   try {
     const [year, month] = parseYearMonth(req.query.month);
@@ -23,18 +25,42 @@ router.get('/', async (req, res, next) => {
     `);
 
     // 2) how many distinct PCs went defective in that month
-    const [[{ defectivePCs }]] = await pool.query(`
-      SELECT COUNT(DISTINCT RoomID, PCNumber) AS defectivePCs
-        FROM ComputerStatusLog
-       WHERE Status     = 'Defective'
-         AND YEAR(CheckDate)  = ?
-         AND MONTH(CheckDate) = ?
-    `, [year, month]);
+  const [[{ defectivePCs }]] = await pool.query(`
+SELECT 
+  COUNT(*) AS defectivePCs
+FROM (
+  -- 1) for each PC active in July, get its single latest log datetime
+  SELECT 
+    RoomID,
+    PCNumber,
+    MAX(LoggedAt) AS latestLoggedAt
+  FROM ComputerStatusLog
+  WHERE YEAR(CheckDate)  = ?
+    AND MONTH(CheckDate) =  ?
+  GROUP BY 
+    RoomID,
+    PCNumber
+) AS lastLogs
+-- 2) join back to the main log so we know which PC we're talking about
+JOIN ComputerStatusLog AS log
+  ON log.RoomID   = lastLogs.RoomID
+ AND log.PCNumber = lastLogs.PCNumber
+ AND log.LoggedAt = lastLogs.latestLoggedAt
+
+-- 3) now join to the *current* status
+JOIN Computers AS comp
+  ON comp.RoomID   = log.RoomID
+ AND comp.PCNumber = log.PCNumber
+
+-- 4) only count those machines whose current status is still Defective
+WHERE comp.Status = 'Defective';
+
+  `, [year, month]);
 
     // 3) working PCs = total minus defective
     const workingPCs = totalPCs - (defectivePCs || 0);
 
-    // 4) total checks that month (optional: from StatusLog or ComputerStatusLog)
+    // 4) total checks that month
     const [[{ checkedThisMonth }]] = await pool.query(`
       SELECT COUNT(*) AS checkedThisMonth
         FROM ComputerStatusLog
@@ -52,5 +78,8 @@ router.get('/', async (req, res, next) => {
     next(err);
   }
 });
+
+// …snip…
+
 
 export default router;

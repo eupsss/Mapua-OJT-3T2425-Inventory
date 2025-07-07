@@ -5,103 +5,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Rooms Monitor – Mapua Inventory</title>
 
-  <!-- Palette variables -->
+  <!-- Global palette vars -->
   <style>
     :root {
-      --color-primary: #C8102E;         /* Mapúan Red */
-      --color-primary-dark: #A10B26;    /* Dark Red */
-      --color-accent: #FFC72C;          /* Gold Accent */
-      --color-text: #333333;            /* Charcoal */
-      --color-bg: #F5F5F5;              /* Light Gray */
-      --color-white: #FFFFFF;           /* White */
+      --color-primary: #C8102E;
+      --color-primary-dark: #A10B26;
+      --color-accent: #FFC72C;
+      --color-text: #333333;
+      --color-bg: #F5F5F5;
+      --color-white: #FFFFFF;
     }
   </style>
 
-  <!-- Link to global CSS -->
+  <!-- Core styles and page overrides -->
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="rooms.css" />
-  <!-- Page-specific JS -->
   <script defer src="rooms.js"></script>
 </head>
 <body>
-  <!-- Floating clock placeholder -->
+  <!-- Floating clock -->
   <div id="floating-time" class="floating-time"></div>
 
-  <!-- Sidebar Navigation -->
-<!-- side-bar -->
+  <!-- Sidebar -->
   <aside class="sidebar">
-  <!-- Profile header -->
-  <div class="sidebar-profile">
-    <div class="avatar"></div>
-    <div class="user-name"></div>
-  </div>
+    <div class="sidebar-profile">
+      <div class="avatar"></div>
+      <div class="user-name"></div>
+    </div>
+    <nav class="sidebar-nav">
+      <ul>
+        <li><a href="dashboard.html"><span class="icon">📊</span><span class="label">Dashboard</span></a></li>
+        <li class="active"><a href="rooms.html"><span class="icon">🏠</span><span class="label">Rooms</span></a></li>
+        <li><a href="assets.html"><span class="icon">💻</span><span class="label">Assets</span></a></li>
+        <li><a href="reports.html"><span class="icon">📑</span><span class="label">Reports</span></a></li>
+        <li><a href="settings.html"><span class="icon">⚙️</span><span class="label">Settings</span></a></li>
+        
+                <li>
+          <a href="users.html">
+            <span class="icon">🧑</span>
+            <span class="label">Users</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="export-btn">📄 Export PDF</button>
+      <button id="signout-btn">🔒 Sign Out</button>
+    </div>
+  </aside>
 
-  </div>
-
-  <!-- Navigation -->
-  <nav class="sidebar-nav">
-    <ul>
-      <li>
-        <a href="dashboard.html">
-          <span class="icon">📊</span>
-          <span class="label">Dashboard</span>
-        </a>
-      </li>
-      <li class = "active">
-        <a href="rooms.html">
-          <span class="icon">🏠</span>
-          <span class="label">Rooms</span>
-        </a>
-      </li>
-      <li>
-        <a href="assets.html">
-          <span class="icon">💻</span>
-          <span class="label">Assets</span>
-        </a>
-      </li>
-      <li>
-        <a href="reports.html">
-          <span class="icon">📑</span>
-          <span class="label">Reports</span>
-        </a>
-      </li>
-      <li>
-        <a href="settings.html">
-          <span class="icon">⚙️</span>
-          <span class="label">Settings</span>
-        </a>
-      </li>
-    </ul>
-  </nav>
-
-  <!-- Footer buttons -->
-  <div class="sidebar-footer">
-    <button class="export-btn">📄 Export PDF</button>
-    <button id="signout-btn">🔒 Sign Out</button>
-  </div>
-</aside>
-
+  <!-- Main content -->
   <div class="main-content">
-
     <header class="header">
       <h2>Rooms Monitor</h2>
-      <div class="user-menu">
-        <span class="username">Admin</span>
-      </div>
+      <div class="user-menu"><span class="username">Admin</span></div>
     </header>
 
-    <!-- Room Selector -->
     <main>
+      <!-- Room selector + actions -->
       <section class="room-selector">
         <label for="room-select">Select Room:</label>
         <select id="room-select">
           <option value="">-- Choose a room --</option>
-          <!-- Rooms are populated via JS -->
         </select>
-
-         <button id="bulkCheck" class="btn-primary">Check All</button>
-
-        <!-- improved Add Room button -->
+        <button id="bulkCheck" class="btn-primary">Check All</button>
         <button id="addRoomBtn" class="btn-add-room">
           <svg xmlns="http://www.w3.org/2000/svg" class="icon-plus" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
             <path fill="currentColor" d="M12 5a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H6a1 1 0 1 1 0-2h5V6a1 1 0 0 1 1-1z"/>
@@ -110,12 +77,12 @@
         </button>
       </section>
 
-      <!-- PC Grid -->
-      <section class="pc-grid"><!-- cards injected via JS --></section>
+      <!-- PC grid -->
+      <section class="pc-grid"></section>
     </main>
   </div>
 
-  <!-- Report Defect modal -->
+  <!-- Defect modal -->
   <div id="defectModal" class="modal hidden">
     <div class="modal-content">
       <h3>Select Issue(s)</h3>
@@ -129,36 +96,49 @@
           <label><input type="checkbox" name="issues" value="CPU"> CPU</label>
           <label><input type="checkbox" name="issues" value="GPU"> GPU</label>
           <label><input type="checkbox" name="issues" value="Network"> Network</label>
-          <label><input type="checkbox" name="issues" value="Other"> Other</label>
+
+          <!-- “Other” checkbox -->
+          <label>
+            <input type="checkbox" id="issue-other-checkbox" name="issues" value="Other">
+            Other
+          </label>
+          <!-- Text input sits full-width below -->
+          <div class="other-input-wrapper hidden">
+            <input
+              type="text"
+              id="issue-other-text"
+              name="otherIssue"
+              class="other-input"
+              placeholder="Describe other issue"
+            />
+          </div>
         </div>
+
         <div class="modal-buttons">
           <button type="button" id="defectCancel" class="btn-light">Cancel</button>
-          <button type="submit"                class="btn-primary">Confirm</button>
+          <button type="submit" class="btn-primary">Confirm</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Log Fix modal -->
+  <!-- Fix modal -->
   <div id="fixModal" class="modal hidden">
     <div class="modal-content">
       <h3>Log a Fix</h3>
       <form id="fixForm" class="fix-form">
         <div class="form-group">
           <label for="fixDateTime">Fixed On</label>
-          <input  type="datetime-local" id="fixDateTime" name="fixedOn" required>
+          <input type="datetime-local" id="fixDateTime" name="fixedOn" required>
         </div>
-
         <div class="form-group">
           <label for="fixerInput">Fixed By</label>
-          <input  type="text" id="fixerInput" name="fixedBy"
-                  list="fixerList" placeholder="Type to search…" required />
+          <input type="text" id="fixerInput" name="fixedBy" list="fixerList" placeholder="Type to search…" required />
           <datalist id="fixerList"></datalist>
         </div>
-
         <div class="modal-buttons">
           <button type="button" id="fixCancel" class="btn-light">Cancel</button>
-          <button type="submit"                class="btn-primary">Confirm</button>
+          <button type="submit" class="btn-primary">Confirm</button>
         </div>
       </form>
     </div>
@@ -171,29 +151,22 @@
       <form id="roomForm" class="fix-form">
         <div class="form-group">
           <label for="roomID">Room ID</label>
-          <input id="roomID" name="roomID" maxlength="10"
-                 placeholder="e.g. MPO312" required>
+          <input id="roomID" name="roomID" maxlength="10" placeholder="e.g. MPO312" required>
         </div>
-
         <div class="form-group">
           <label for="roomConfig">Configuration</label>
-          <input type="number" id="roomConfig" name="roomConfig"
-                 min="1" value="1">
+          <input type="number" id="roomConfig" name="roomConfig" min="1" value="1">
         </div>
-
         <div class="form-group">
           <label for="pcNum">Number of PCs</label>
-          <input type="number" id="pcNum" name="pcNum"
-                 min="1" value="41">
+          <input type="number" id="pcNum" name="pcNum" min="1" value="41">
         </div>
-
         <div class="modal-buttons">
           <button type="button" id="roomCancel" class="btn-light">Cancel</button>
-          <button type="submit"                    class="btn-primary">Save</button>
+          <button type="submit" class="btn-primary">Save</button>
         </div>
       </form>
     </div>
   </div>
-
 </body>
 </html>

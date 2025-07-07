@@ -4,67 +4,66 @@ import { pool }   from '../db.js';
 
 const router = Router();
 
-/* ── helper: pull last ticket for this PC (today) ─────────────── */
-async function latestTicket(conn, roomID, pcNumber) {
-  const [rows] = await conn.execute(
-    `SELECT ServiceTicketID
-       FROM ComputerStatusLog
-      WHERE RoomID   = ?
-        AND PCNumber = ?
-      ORDER BY LoggedAt DESC
-      LIMIT 1`,
-    [roomID, pcNumber]
-  );
-  return rows.length ? rows[0].ServiceTicketID : null;
-}
-
-/* ───────────────────────── route ─────────────────────────────── */
 router.post('/', async (req, res) => {
-  /* 0️⃣  Auth */
+  // 0️⃣ Auth
   const u = req.session.user;
-  if (!u || !u.id) {
+  if (!u?.id) {
     return res.status(401).json({ success:false, error:'Not authenticated' });
   }
   const userID = u.id;
 
-  /* 1️⃣  Validate */
+  // 1️⃣ Validate
   const { roomID='', pcNumber='', status='', issues=[] } = req.body;
-  if (!roomID.trim() || !pcNumber || !['Working','Defective'].includes(status)) {
+  if (
+    !roomID.trim() ||
+    !pcNumber ||
+    !['Working','Defective'].includes(status)
+  ) {
     return res.status(422).json({ success:false, error:'Invalid payload' });
   }
-  const issuesStr = Array.isArray(issues)&&issues.length ? issues.join(',') : null;
+  const issuesStr = Array.isArray(issues) && issues.length
+    ? issues.join(',')
+    : null;
 
-  /* 2️⃣  Transaction */
+  // 2️⃣ Grab a transaction‐scoped connection
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
 
-    /* a) Computers */
+    // 3️⃣ Count today's logs for this PC (in‐txn)
+    const [[{ cnt }]] = await conn.execute(
+      `SELECT COUNT(*) AS cnt
+         FROM ComputerStatusLog
+        WHERE RoomID   = ?
+          AND PCNumber = ?
+          AND DATE(LoggedAt)=CURDATE()`,
+      [roomID, pcNumber]
+    );
+
+    // 4️⃣ Build the ticket ID
+    const tag      = status === 'Working' ? 'Fixed' : 'Defective';
+    const serial   = String(cnt + 1).padStart(9, '0');
+    const ticketID = `${roomID}-${pcNumber}-${tag}-${serial}`;
+
+    // 5️⃣ Update the PC’s live status
     await conn.execute(
       `UPDATE Computers
-          SET Status = ?, LastUpdated = NOW()
-        WHERE RoomID=? AND PCNumber=?`,
+          SET Status      = ?,
+              LastUpdated = NOW()
+        WHERE RoomID     = ?
+          AND PCNumber   = ?`,
       [status, roomID, pcNumber]
     );
 
-    /* b) ComputerStatusLog
-          – pass NULL so trigger builds the ticket */
+    // 6️⃣ Insert a new status log row
     await conn.execute(
       `INSERT INTO ComputerStatusLog
-         (RoomID,PCNumber,CheckDate,Status,Issues,ServiceTicketID,UserID,LoggedAt)
-       VALUES (?, ?, CURDATE(), ?, ?, NULL, ?, NOW())
-       ON DUPLICATE KEY UPDATE
-         Status  = VALUES(Status),
-         Issues  = VALUES(Issues),
-         UserID  = VALUES(UserID),
-         LoggedAt= VALUES(LoggedAt)`,
-      [roomID, pcNumber, status, issuesStr, userID]
+         (RoomID, PCNumber, CheckDate, Status, Issues, ServiceTicketID, UserID, LoggedAt)
+       VALUES (?, ?, CURDATE(), ?, ?, ?, ?, NOW())`,
+      [roomID, pcNumber, status, issuesStr, ticketID, userID]
     );
 
-    /* c) fetch the ticket the trigger (or earlier row) produced */
-    const ticketID = await latestTicket(conn, roomID, pcNumber);
-
-    /* d) Fixes row when status becomes Working */
+    // 7️⃣ If we’re marking it back to Working, log the fix
     if (status === 'Working') {
       await conn.execute(
         `INSERT INTO Fixes
@@ -74,14 +73,14 @@ router.post('/', async (req, res) => {
       );
     }
 
+    // 8️⃣ Commit everything at once
     await conn.commit();
-    res.json({ success:true });
-  } catch (e) {
-    await conn.rollback();
-    console.error('❌ [update-status] SQL Error:', e.code, e.sqlMessage);
-    res.status(500).json({ success:false, error: e.sqlMessage });
-  
+    res.json({ success:true, serviceTicketID: ticketID });
 
+  } catch (err) {
+    await conn.rollback();
+    console.error('❌ [update-status] Transaction error:', err);
+    res.status(500).json({ success:false, error: err.message });
   } finally {
     conn.release();
   }
