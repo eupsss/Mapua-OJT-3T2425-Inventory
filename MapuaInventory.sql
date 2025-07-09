@@ -249,3 +249,8 @@ ALTER TABLE `Computers`
 ALTER TABLE `ComputerStatusLog`
   MODIFY `Status` ENUM('Working','Defective')
     NOT NULL DEFAULT 'Working';
+
+CREATE TABLE IF NOT EXISTS DailyTicketSeq (
+  seq_date DATE         NOT NULL PRIMARY KEY,
+  seq      INT UNSIGNED NOT NULL
+) ENGINE=InnoDB CHARSET=utf8mb4;

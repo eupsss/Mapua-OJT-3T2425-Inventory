@@ -1,4 +1,3 @@
-// routes/update-status.js
 import { Router } from 'express';
 import { pool }   from '../db.js';
 
@@ -12,45 +11,47 @@ router.post('/', async (req, res) => {
   }
   const userID = u.id;
 
-  // 1️⃣ Validate
-  const { roomID='', pcNumber='', status='', issues=[] } = req.body;
-  if (
-    !roomID.trim() ||
-    !pcNumber ||
-    !['Working','Defective'].includes(status)
-  ) {
+  // 1️⃣ Validate input
+  const { roomID = '', pcNumber = '', status = '', issues = [] } = req.body;
+  if (!roomID.trim() || !pcNumber || !['Working','Defective'].includes(status)) {
     return res.status(422).json({ success:false, error:'Invalid payload' });
   }
-  const issuesStr = Array.isArray(issues) && issues.length
-    ? issues.join(',')
-    : null;
+  const issuesStr = Array.isArray(issues) && issues.length ? issues.join(',') : null;
 
-  // 2️⃣ Grab a transaction‐scoped connection
+  // 2️⃣ Start transaction
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
 
-    const [[{ cnt }]] = await conn.execute(
-      `SELECT COUNT(*) AS cnt
-        FROM ComputerStatusLog
-        WHERE DATE(LoggedAt)=CURDATE()`
+    /*
+      -------------------------------------------------------------------------
+      3️⃣  Grab the next *global* sequence number
+          – we removed the CURDATE() filter so the serial keeps growing forever
+            (000000169 → 000000170 → …) and never restarts at 1.
+          – CAST() converts the string suffix to a number; Number() turns the
+            MySQL string result into a real JS number so +1 is arithmetic.
+      -------------------------------------------------------------------------*/
+    const [[{ maxSeq }]] = await conn.execute(
+      `SELECT COALESCE(MAX(CAST(SUBSTRING_INDEX(ServiceTicketID, '-', -1) AS UNSIGNED)), 0) AS maxSeq
+         FROM ComputerStatusLog`
     );
-    // 4️⃣ Build the ticket ID
-    const tag      = status === 'Working' ? 'Fixed' : 'Defective';
-    const serial   = String(cnt + 1).padStart(9, '0');
+
+    const seq = Number(maxSeq) + 1;  // numeric increment, not concatenation
+
+    // 4️⃣ Build ticket ID (e.g. MPO310-18-Fixed-000000170)
+    const tag    = status === 'Working' ? 'Fixed' : 'Defective';
+    const serial = String(seq).padStart(9, '0');
     const ticketID = `${roomID}-${pcNumber}-${tag}-${serial}`;
 
-    // 5️⃣ Update the PC’s live status
+    // 5️⃣ Update Computers table
     await conn.execute(
       `UPDATE Computers
-          SET Status      = ?,
-              LastUpdated = NOW()
-        WHERE RoomID     = ?
-          AND PCNumber   = ?`,
+          SET Status = ?, LastUpdated = NOW()
+        WHERE RoomID = ? AND PCNumber = ?`,
       [status, roomID, pcNumber]
     );
 
-    // 6️⃣ Insert a new status log row
+    // 6️⃣ Insert into ComputerStatusLog
     await conn.execute(
       `INSERT INTO ComputerStatusLog
          (RoomID, PCNumber, CheckDate, Status, Issues, ServiceTicketID, UserID, LoggedAt)
@@ -58,7 +59,7 @@ router.post('/', async (req, res) => {
       [roomID, pcNumber, status, issuesStr, ticketID, userID]
     );
 
-    // 7️⃣ If we’re marking it back to Working, upsert the fix
+    // 7️⃣ If marking as Working, upsert into Fixes
     if (status === 'Working') {
       await conn.execute(
         `INSERT INTO Fixes
@@ -71,7 +72,7 @@ router.post('/', async (req, res) => {
       );
     }
 
-    // 8️⃣ Commit everything at once
+    // 8️⃣ Commit transaction
     await conn.commit();
     res.json({ success:true, serviceTicketID: ticketID });
 
