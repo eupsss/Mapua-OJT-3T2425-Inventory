@@ -1,4 +1,4 @@
-// reports.js – v2.8
+// reports.js – v3.0
 console.log('▶️ reports.js loaded');
 
 // 1️⃣ Login guard
@@ -13,7 +13,7 @@ let currentSort = { key: null, asc: true };
 let latestRows = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-  //── Inject user info ─────────────────────────────────────
+  //── Inject user info
   document.querySelector('.username').textContent = user.name;
   document.querySelectorAll('.avatar, .user-name').forEach(el => {
     if (el.classList.contains('user-name')) {
@@ -28,22 +28,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  //── Sign out ─────────────────────────────────────────────
+  //── Sign out
   document.getElementById('signout-btn').addEventListener('click', () => {
     sessionStorage.removeItem('user');
     location.href = 'login.html';
   });
 
-  //── Date filter & clear ─────────────────────────────────
-  document.getElementById('fixed-date-filter')
-    .addEventListener('change', () => renderTableRows(latestRows));
+  //── Date filter & clear
+  const dateInput = document.getElementById('fixed-date-filter');
+  dateInput.addEventListener('change', () => renderTableRows(latestRows));
   document.getElementById('clear-date-filter')
     .addEventListener('click', () => {
-      document.getElementById('fixed-date-filter').value = '';
+      dateInput.value = '';
       renderTableRows(latestRows);
     });
 
-  //── Column sorting ──────────────────────────────────────
+  //── Column sorting
   document.querySelectorAll('#reportsTable thead th[data-sort]')
     .forEach(th => {
       th.style.cursor = 'pointer';
@@ -62,26 +62,27 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-  //── Initial load ────────────────────────────────────────
+  //── Sticky dropdowns
+  document.querySelectorAll('.dropdown').forEach(dd => {
+    const btn = dd.querySelector('.filter-btn');
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      document.querySelectorAll('.dropdown.open').forEach(other => {
+        if (other !== dd) other.classList.remove('open');
+      });
+      dd.classList.toggle('open');
+    });
+  });
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown.open')
+      .forEach(dd => dd.classList.remove('open'));
+  });
+  document.querySelectorAll('.dropdown-menu')
+    .forEach(menu => menu.addEventListener('click', e => e.stopPropagation()));
+
+  //── Initial load
   loadAndRenderFiltered();
 });
-
-// Deduplicate by RoomID+PCNumber, keeping the highest ticket sequence
-function getLatestPerPC(rows) {
-  const map = new Map();
-  rows.forEach(r => {
-    const key = `${r.RoomID}-${r.PCNumber}`;
-    const existing = map.get(key);
-    if (!existing) {
-      map.set(key, r);
-    } else {
-      const prevSeq = parseInt((existing.ServiceTicketID || '').split('-').pop(), 10) || 0;
-      const currSeq = parseInt((r.ServiceTicketID || '').split('-').pop(), 10) || 0;
-      if (currSeq > prevSeq) map.set(key, r);
-    }
-  });
-  return Array.from(map.values());
-}
 
 async function loadAndRenderFiltered() {
   const tbody = document.querySelector('#reportsTable tbody');
@@ -91,14 +92,12 @@ async function loadAndRenderFiltered() {
     if (!res.ok) throw new Error(res.status);
     const rows = await res.json();
 
-    // 1) pick only the latest per PC
-    latestRows = getLatestPerPC(rows);
+    // — now just keep all rows, in API order
+    latestRows = rows;
 
-    // 2) compute a DisplayStatus for the UI
+    // add DisplayStatus
     latestRows.forEach(r => {
-      r.DisplayStatus = (r.Status === 'Fixed')
-        ? 'Fixed'
-        : 'Under Repair';
+      r.DisplayStatus = (r.Status === 'Fixed') ? 'Fixed' : 'Under Repair';
     });
 
     populateDropdowns(latestRows);
@@ -111,21 +110,15 @@ async function loadAndRenderFiltered() {
 }
 
 function populateDropdowns(rows) {
-  // For each dropdown (Status, Room)
   document.querySelectorAll('.dropdown').forEach(dd => {
     const field = dd.dataset.field; // "Status" or "RoomID"
     const menu  = dd.querySelector('.dropdown-menu');
 
-    // If it's the Status dropdown, use raw r.Status (Working/Defective)
-    // Otherwise use r[field] (e.g. r.RoomID)
     const values = Array.from(
-      new Set(
-        rows.map(r => field === 'Status'
-          ? r.Status
-          : String(r[field] ?? '')
-        ).filter(v => v)
-      )
-    ).sort();
+      new Set(rows.map(r =>
+        field === 'Status' ? r.Status : r[field] || ''
+      ))
+    ).filter(v => v).sort();
 
     menu.innerHTML = values.map(val => `
       <li>
@@ -136,7 +129,6 @@ function populateDropdowns(rows) {
       </li>
     `).join('');
 
-    // Re-render on any checkbox change
     menu.querySelectorAll('input[type="checkbox"]').forEach(cb =>
       cb.addEventListener('change', () => renderTableRows(latestRows))
     );
@@ -146,32 +138,30 @@ function populateDropdowns(rows) {
 function renderTableRows(rows) {
   const tbody = document.querySelector('#reportsTable tbody');
   tbody.innerHTML = '';
-  let filtered = rows.slice();
+  let filtered = [...rows];
 
-  // 1) Apply dropdown filters
+  // dropdown filters
   document.querySelectorAll('.dropdown').forEach(dd => {
-    const field = dd.dataset.field;
-    const checked = Array.from(
-      dd.querySelectorAll('input:checked')
-    ).map(i => i.value);
-
+    const field   = dd.dataset.field;
+    const checked = [...dd.querySelectorAll('input:checked')].map(i => i.value);
     if (checked.length) {
       filtered = filtered.filter(r => {
-        // For Status, filter on raw r.Status
         if (field === 'Status') return checked.includes(r.Status);
-        // Otherwise filter on the given field
         return checked.includes(String(r[field]));
       });
     }
   });
 
-  // 2) Apply date filter
+  // date filter (YYYY-MM-DD)
   const dateVal = document.getElementById('fixed-date-filter').value;
   if (dateVal) {
-    filtered = filtered.filter(r => r.FixedOn === dateVal);
+    filtered = filtered.filter(r => {
+      if (!r.FixedOn) return false;
+      return r.FixedOn.slice(0, 10) === dateVal;
+    });
   }
 
-  // 3) Sorting
+  // sorting
   if (currentSort.key) {
     filtered.sort((a, b) => {
       let av = a[currentSort.key] || '';
@@ -186,31 +176,30 @@ function renderTableRows(rows) {
     });
   }
 
-  // 4) Render
+  // empty state
   if (!filtered.length) {
     tbody.innerHTML =
       '<tr><td colspan="9" class="center">No records found.</td></tr>';
     return;
   }
 
+  // render
   filtered.forEach(r => {
+    const fixedOnCell = r.Status === 'Fixed' ? (r.FixedOn || '') : '';
+    const fixedByCell = r.Status === 'Fixed' ? (r.FixedBy || '') : '';
+
     const tr = document.createElement('tr');
-// only show fixed-on/by when the raw status is Working
-const fixedOnCell = (r.Status === 'Fixed' ? r.FixedOn || '' : '');
-const fixedByCell = (r.Status === 'Fixed' ? r.FixedBy  || '' : '');
-
-tr.innerHTML = `
-  <td>${r.ServiceTicketID}</td>
-  <td>${r.CheckDate}</td>
-  <td>${r.RoomID}</td>
-  <td>${r.PCNumber}</td>
-  <td>${r.DisplayStatus}</td>
-  <td>${r.Issues || ''}</td>
-  <td>${fixedOnCell}</td>
-  <td>${fixedByCell}</td>
-  <td>${r.RecordedBy || ''}</td>
-`;
-
+    tr.innerHTML = `
+      <td>${r.ServiceTicketID}</td>
+      <td>${r.CheckDate}</td>
+      <td>${r.RoomID}</td>
+      <td>${r.PCNumber}</td>
+      <td>${r.DisplayStatus}</td>
+      <td>${r.Issues || ''}</td>
+      <td>${fixedOnCell}</td>
+      <td>${fixedByCell}</td>
+      <td>${r.RecordedBy || ''}</td>
+    `;
     tbody.appendChild(tr);
   });
 }

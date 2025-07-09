@@ -39,8 +39,7 @@
         <li><a href="assets.html"><span class="icon">💻</span><span class="label">Assets</span></a></li>
         <li><a href="reports.html"><span class="icon">📑</span><span class="label">Reports</span></a></li>
         <li><a href="settings.html"><span class="icon">⚙️</span><span class="label">Settings</span></a></li>
-        
-                <li>
+        <li>
           <a href="users.html">
             <span class="icon">🧑</span>
             <span class="label">Users</span>
@@ -96,13 +95,11 @@
           <label><input type="checkbox" name="issues" value="CPU"> CPU</label>
           <label><input type="checkbox" name="issues" value="GPU"> GPU</label>
           <label><input type="checkbox" name="issues" value="Network"> Network</label>
-
           <!-- “Other” checkbox -->
           <label>
             <input type="checkbox" id="issue-other-checkbox" name="issues" value="Other">
             Other
           </label>
-          <!-- Text input sits full-width below -->
           <div class="other-input-wrapper hidden">
             <input
               type="text"
@@ -113,7 +110,6 @@
             />
           </div>
         </div>
-
         <div class="modal-buttons">
           <button type="button" id="defectCancel" class="btn-light">Cancel</button>
           <button type="submit" class="btn-primary">Confirm</button>
@@ -138,6 +134,39 @@
         </div>
         <div class="modal-buttons">
           <button type="button" id="fixCancel" class="btn-light">Cancel</button>
+          <button type="submit" class="btn-primary">Confirm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bulk-Fix modal -->
+  <div id="bulkFixModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Log Bulk Fix</h3>
+      <form id="bulkFixForm" class="fix-form">
+        <div class="form-group">
+          <label for="bulkFixDateTime">Fixed On</label>
+          <input 
+            type="datetime-local" 
+            id="bulkFixDateTime" 
+            name="fixedOn" 
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="bulkFixerInput">Fixed By</label>
+          <input 
+            type="text" 
+            id="bulkFixerInput" 
+            name="fixedBy" 
+            list="fixerList" 
+            placeholder="Type to search…" 
+            required 
+          />
+        </div>
+        <div class="modal-buttons">
+          <button type="button" id="bulkFixCancel" class="btn-light">Cancel</button>
           <button type="submit" class="btn-primary">Confirm</button>
         </div>
       </form>

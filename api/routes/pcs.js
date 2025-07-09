@@ -24,7 +24,7 @@ router.get('/', async (req, res, next) => {
         l.ServiceTicketID
       FROM Computers AS c
 
-      /* grab the most‐recent defect ticket, if any */
+      /* join in the most‐recent “Defective” ticket for each PC (if any) */
       LEFT JOIN (
         SELECT RoomID, PCNumber, ServiceTicketID
         FROM ComputerStatusLog
@@ -36,8 +36,8 @@ router.get('/', async (req, res, next) => {
             GROUP BY RoomID, PCNumber
           )
       ) AS l
-        ON l.RoomID    = c.RoomID
-       AND l.PCNumber  = c.PCNumber
+        ON l.RoomID   = c.RoomID
+       AND l.PCNumber = c.PCNumber
 
       WHERE c.RoomID = ?
       ORDER BY c.PCNumber
@@ -45,7 +45,7 @@ router.get('/', async (req, res, next) => {
       [roomID]
     );
 
-    // now each row is { PCNumber, Status, ServiceTicketID|null }
+    // each row now has { PCNumber, Status, ServiceTicketID|null }
     res.json(rows);
   } catch (err) {
     next(err);

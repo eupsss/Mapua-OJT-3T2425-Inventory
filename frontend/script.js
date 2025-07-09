@@ -320,7 +320,8 @@ async function loadMetrics(ym) {
 async function drawStatusChart(ym) {
   const res = await fetch(`${API_BASE}/metrics?month=${ym}`);
   if (!res.ok) return;
-  const { workingPCs, defectivePCs } = await res.json();
+  const { workingPCs, defectivePCs, totalPCs } = await res.json();
+
   statusChart = setChart(
     statusChart,
     document.getElementById('statusChart').getContext('2d'),
@@ -329,29 +330,69 @@ async function drawStatusChart(ym) {
       data: {
         labels: ['Working','Defective'],
         datasets: [{
-          data: [workingPCs,defectivePCs],
+          data: [workingPCs, defectivePCs],
           backgroundColor: [
             getCSSVar('--color-primary'),
             getCSSVar('--color-accent')
           ],
-          hoverOffset: 8,
-          borderWidth: 2,
-          borderColor: '#fff'
+          borderColor: '#fff',
+          borderWidth: 2
         }]
       },
       options: {
-        cutout: '60%',
+        cutout: '60%',            // smaller hole
+        responsive: true,
         plugins: {
+          legend: {
+            position: 'right',
+            align: 'center',
+            labels: { boxWidth: 12, padding: 16 }
+          },
           tooltip: {
+            padding: 8,
             callbacks: {
-              label: ctx => `${ctx.label}: ${ctx.parsed} PCs`
+              label(ctx) {
+                const c = ctx.parsed;
+                const p = ((c/totalPCs)*100).toFixed(1);
+                return `${ctx.label}: ${c} PCs (${p}%)`;
+              }
             }
           }
         }
-      }
+      },
+      plugins: [
+{
+  id: 'center-text',
+  beforeDraw(chart) {
+    const { ctx, chartArea: { left, right, top, bottom } } = chart;
+    ctx.save();
+
+    // Compute the center of the actual chart area (inside the legend/margins)
+    const centerX = (left + right) / 2;
+    const centerY = (top + bottom) / 2;
+
+    // Font size ~ 20% of donut diameter (right-left is outer diameter)
+    const diameter = right - left;
+    const fontSize = Math.floor(diameter * 0.1);
+
+    ctx.font         = `${fontSize}px sans-serif`;
+    ctx.fillStyle    = getCSSVar('--color-text');
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Two lines, stacked inside hole
+    ctx.fillText('Total', centerX, centerY - fontSize * 0.3);
+    ctx.fillText(totalPCs, centerX, centerY + fontSize * 0.7);
+
+    ctx.restore();
+  }
+}
+      ]
     }
   );
 }
+
+
 
 /* ─── 2) Checks Over Time ─────────────────────────────────── */
 async function drawChecksChart(ym) {

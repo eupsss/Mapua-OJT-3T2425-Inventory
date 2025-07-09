@@ -1,4 +1,4 @@
-// api/routes/update-status.js
+// routes/update-status.js
 import { Router } from 'express';
 import { pool }   from '../db.js';
 
@@ -30,16 +30,11 @@ router.post('/', async (req, res) => {
   try {
     await conn.beginTransaction();
 
-    // 3️⃣ Count today's logs for this PC (in‐txn)
     const [[{ cnt }]] = await conn.execute(
       `SELECT COUNT(*) AS cnt
-         FROM ComputerStatusLog
-        WHERE RoomID   = ?
-          AND PCNumber = ?
-          AND DATE(LoggedAt)=CURDATE()`,
-      [roomID, pcNumber]
+        FROM ComputerStatusLog
+        WHERE DATE(LoggedAt)=CURDATE()`
     );
-
     // 4️⃣ Build the ticket ID
     const tag      = status === 'Working' ? 'Fixed' : 'Defective';
     const serial   = String(cnt + 1).padStart(9, '0');
@@ -63,12 +58,15 @@ router.post('/', async (req, res) => {
       [roomID, pcNumber, status, issuesStr, ticketID, userID]
     );
 
-    // 7️⃣ If we’re marking it back to Working, log the fix
+    // 7️⃣ If we’re marking it back to Working, upsert the fix
     if (status === 'Working') {
       await conn.execute(
         `INSERT INTO Fixes
            (RoomID, PCNumber, FixedAt, FixedBy, ServiceTicketID)
-         VALUES (?, ?, NOW(), ?, ?)`,
+         VALUES (?, ?, NOW(), ?, ?)
+         ON DUPLICATE KEY UPDATE
+           FixedAt = VALUES(FixedAt),
+           FixedBy = VALUES(FixedBy)`,
         [roomID, pcNumber, userID, ticketID]
       );
     }

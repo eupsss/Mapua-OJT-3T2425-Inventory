@@ -1,4 +1,3 @@
-// rooms.js
 console.log('▶️ rooms.js loaded');
 
 // ───── 0. Login guard ─────────────────────────────────────────
@@ -25,6 +24,7 @@ let roomSelect, pcGrid,
     otherCheckbox, otherWrapper, otherTextInput,
     fixModal, fixForm, fixDateTime, fixerInput, fixerList, btnFixCancel,
     checkAllBtn,
+    bulkFixModal, bulkFixForm, bulkFixDateTime, bulkFixerInput, bulkFixCancel,
     roomModal, roomForm, roomCancel, addRoomBtn,
     signOutBtn;
 
@@ -175,7 +175,6 @@ function wireDefectModal() {
     setCardVisual(card, 'Defective');
 
     try {
-      // report defect, receive ticketID
       const { serviceTicketID } = await fetchJSON(API_BASE + 'update-status', {
         method: 'POST',
         headers: { 'Content-Type':'application/json' },
@@ -187,7 +186,6 @@ function wireDefectModal() {
           userID: user.id
         })
       });
-      // stash ticket on card
       card.dataset.ticket = serviceTicketID;
     } catch (err) {
       console.error(err);
@@ -240,32 +238,93 @@ function wireFixModal() {
   });
 }
 
-// ───── 11. Bulk “Check All” ────────────────────────────────────
+// ───── 11. Bulk “Check All” (serialized) ─────────────────────
 function wireCheckAll() {
   checkAllBtn.addEventListener('click', async () => {
+    // now handled by bulkFixModal opener
+  });
+}
+
+// ───── 11b. Bulk-Fix modal ─────────────────────────────────────
+function wireBulkFixModal() {
+  // DOM refs
+  bulkFixModal      = $('#bulkFixModal');
+  bulkFixForm       = $('#bulkFixForm');
+  bulkFixDateTime   = $('#bulkFixDateTime');
+  bulkFixerInput    = $('#bulkFixerInput');
+  bulkFixCancel     = $('#bulkFixCancel');
+
+  // Cancel
+  bulkFixCancel.addEventListener('click', () => {
+    bulkFixForm.reset();
+    bulkFixModal.classList.add('hidden');
+  });
+
+  // Open on “Check All”
+  checkAllBtn.addEventListener('click', () => {
     const roomID = roomSelect.value;
     if (!roomID) return alert('Select a room first');
-    if (!confirm('Mark all PCs as Working?')) return;
+    // set Philippines “now” as default & max
+    const phNow = new Date().toLocaleString('sv-SE', {
+      timeZone: 'Asia/Manila', hour12: false
+    }).replace(' ', 'T').slice(0,16);
+    bulkFixDateTime.value = phNow;
+    bulkFixDateTime.max   = phNow;
+    bulkFixerInput.value  = '';
+    bulkFixModal.classList.remove('hidden');
+    bulkFixerInput.focus();
+  });
+
+  // Confirm bulk fix
+  bulkFixForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const roomID  = roomSelect.value;
+    const fixedOn = bulkFixDateTime.value;
+    const name    = bulkFixerInput.value.trim();
+    const fixer   = userRoster.find(u => u.fullName === name);
+    if (!fixer) return alert('Pick a name from the list');
+
+    bulkFixModal.classList.add('hidden');
+
     const cards = $$('.pc-card');
     try {
-      await Promise.all(cards.map(card => {
+      for (const card of cards) {
         setCardVisual(card, 'Working');
-        return fetchJSON(API_BASE+'update-status', {
+
+        // 1) mark Working + get new ticket
+        const { serviceTicketID } = await fetchJSON(
+          API_BASE + 'update-status',
+          {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json' },
+            body: JSON.stringify({
+              roomID,
+              pcNumber: card.dataset.pc,
+              status: 'Working',
+              issues: [],
+              userID: user.id
+            })
+          }
+        );
+
+        // 2) log fix on chosen datetime & by chosen fixer
+        await fetchJSON(API_BASE + 'fix', {
           method: 'POST',
           headers: { 'Content-Type':'application/json' },
           body: JSON.stringify({
             roomID,
             pcNumber: card.dataset.pc,
-            status: 'Working',
-            issues: [],
-            userID: user.id
+            fixedOn,
+            fixedBy: fixer.userId,
+            serviceTicketID
           })
         });
-      }));
-      alert('All PCs marked Working');
+      }
+
+      alert(`All PCs fixed on ${fixedOn} by ${fixer.fullName}`);
     } catch (err) {
       console.error(err);
-      alert('Failed to check all');
+      alert('Bulk fix failed—refreshing grid');
       loadPCs(roomID);
     }
   });
@@ -343,7 +402,8 @@ document.addEventListener('DOMContentLoaded', () => {
   loadRooms();
   wireDefectModal();
   wireFixModal();
-  wireCheckAll();
+  wireCheckAll();       // no-op now
+  wireBulkFixModal();   // <-- newly added
   wireAddRoomModal();
 
   roomSelect.addEventListener('change', ()=> {

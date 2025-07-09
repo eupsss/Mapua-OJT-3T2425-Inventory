@@ -1,4 +1,3 @@
-<!-- reports.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,18 +8,24 @@
   <!-- Palette variables & global CSS -->
   <style>
     :root {
-      --color-primary: #C8102E;
-      --color-text: #333333;
-      --color-bg: #F5F5F5;
+      --color-primary: #5A67D8;
+      --color-primary-dark: #434190;
+      --color-text: #2D3748;
+      --color-bg: #EDF2F7;
       --color-white: #FFFFFF;
+      --color-border: #E2E8F0;
+      --radius: 6px;
+      --transition: 0.2s ease;
+      --font: 'Segoe UI', sans-serif;
     }
+    body { font-family: var(--font); background: var(--color-bg); color: var(--color-text); margin:0; }
   </style>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="reports.css" />
   <script defer src="reports.js"></script>
 </head>
 <body>
-  <!-- Sidebar -->
+<!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-profile">
       <div class="avatar"></div>
@@ -48,7 +53,6 @@
     </div>
   </aside>
 
-  <!-- Main content -->
   <div class="main-content">
     <header class="header">
       <h2>Reports</h2>
@@ -63,42 +67,45 @@
 
         <!-- Filter bar -->
         <div class="filter-bar">
-          <!-- Left: dynamic dropdown filters -->
-          <div class="filter-dropdowns">
-            <div class="dropdown" data-field="Status">
-              <button class="filter-btn">Status</button> <span class="caret">▾</span></button>
+          <div class="filter-left">
+            <div class="filter-control dropdown" data-field="Status">
+              <button class="filter-btn">
+                Status <span class="icon">▾</span>
+              </button>
               <ul class="dropdown-menu"></ul>
             </div>
-            <div class="dropdown" data-field="RoomID">
-              <button class="filter-btn">Room <span class="caret">▾</span></button>
+            <div class="filter-control dropdown" data-field="RoomID">
+              <button class="filter-btn">
+                Room <span class="icon">▾</span>
+              </button>
               <ul class="dropdown-menu"></ul>
             </div>
           </div>
-
-          <!-- Right: date filter -->
-          <div class="filter-date">
-            <label for="fixed-date-filter">Fixed Date:</label>
+          <div class="filter-right">
+            <label for="fixed-date-filter">Fixed Date</label>
             <input type="date" id="fixed-date-filter"/>
-            <button id="clear-date-filter">Clear</button>
+            <button id="clear-date-filter" class="small-btn">Clear</button>
           </div>
         </div>
 
-        <table id="reportsTable">
-          <thead>
-            <tr>
-              <th data-sort="ServiceTicketID">Ticket #</th>
-              <th data-sort="CheckDate">Date</th>
-              <th data-sort="RoomID">Room</th>
-              <th data-sort="PCNumber">PC #</th>
-              <th data-sort="Status">Status</th>
-              <th data-sort="Issues">Issues</th>
-              <th data-sort="FixedOn">Fixed On</th>
-              <th data-sort="FixedBy">Fixed By</th>
-              <th data-sort="RecordedBy">Recorded By</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <div class="table-container">
+          <table id="reportsTable">
+            <thead>
+              <tr>
+                <th data-sort="ServiceTicketID">Ticket #</th>
+                <th data-sort="CheckDate">Date</th>
+                <th data-sort="RoomID">Room</th>
+                <th data-sort="PCNumber">PC #</th>
+                <th data-sort="Status">Status</th>
+                <th data-sort="Issues">Issues</th>
+                <th data-sort="FixedOn">Fixed On</th>
+                <th data-sort="FixedBy">Fixed By</th>
+                <th data-sort="RecordedBy">Recorded By</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </section>
     </main>
   </div>

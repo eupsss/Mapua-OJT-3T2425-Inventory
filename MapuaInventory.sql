@@ -76,32 +76,27 @@ CREATE TABLE `ComputerStatusLog` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 DELIMITER $$
-CREATE TRIGGER trg_set_ticketid
-BEFORE INSERT ON `ComputerStatusLog`
+
+CREATE TRIGGER `trg_set_ticketid`
+BEFORE  INSERT ON `ComputerStatusLog`
 FOR EACH ROW
 BEGIN
   IF NEW.ServiceTicketID IS NULL THEN
-    DECLARE nxt BIGINT;
-    DECLARE issueText VARCHAR(20);
-
-    SELECT AUTO_INCREMENT
-      INTO nxt
-      FROM INFORMATION_SCHEMA.TABLES
-     WHERE TABLE_SCHEMA = DATABASE()
-       AND TABLE_NAME   = 'ComputerStatusLog'
-     LIMIT 1;
-
-    SET issueText = SUBSTRING_INDEX(NEW.Issues, ',', 1);
-    IF issueText IS NULL OR issueText = '' THEN
-      SET issueText = 'Checked';
-    END IF;
-
+    -- base: ROOM-PC-firstIssueOrChecked
+    SET @base = CONCAT(
+      NEW.RoomID, '-',
+      NEW.PCNumber, '-',
+      IFNULL(NULLIF(SUBSTRING_INDEX(NEW.Issues, ',', 1), ''), 'Checked')
+    );
+    -- suffix: a compact UUID (hex only, no hyphens)
     SET NEW.ServiceTicketID = CONCAT(
-      NEW.RoomID, '-', NEW.PCNumber, '-', issueText, '-', LPAD(nxt,9,'0')
+      @base, '-',
+      REPLACE(UUID(), '-', '')
     );
   END IF;
-END$$
+END $$
 DELIMITER ;
+
 
 /*----------------------------------------------------------------
   5)  Fixes (+ enforce non-null ticket + cascading delete)
