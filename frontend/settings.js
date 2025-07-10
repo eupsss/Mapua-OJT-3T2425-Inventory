@@ -9,18 +9,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     return location.href = 'login.html';
   }
 
-  // 2) Populate sidebar/header user info
-  document.querySelectorAll('.user-name').forEach(el => {
-    el.textContent = sessionUser.name;
-  });
-  document.querySelectorAll('.avatar').forEach(el => {
-    const initials = sessionUser.name
-      .split(' ')
-      .map(n => n[0]?.toUpperCase()||'')
-      .join('')
-      .slice(0,2);
-    el.textContent = initials;
-  });
+// 2) Populate sidebar/header user info
+const firstName = "Hi, " + sessionUser.name.trim().split(' ')[0] + "!";
+
+document.querySelectorAll('.user-name').forEach(el => {
+  el.textContent = firstName;
+});
+document.querySelectorAll('.avatar').forEach(el => {
+  const initials = sessionUser.name
+    .split(' ')
+    .map(n => n[0]?.toUpperCase()||'')
+    .join('')
+    .slice(0,2);
+  el.textContent = initials;
+});
+
+// 4) Show first name in the page’s header span.username
+const usernameSpan = document.querySelector('.username');
+if (usernameSpan) {
+  usernameSpan.textContent = firstName;
+}
+
 
   // 3) Fetch the full profile from API
   let profile;
@@ -36,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // 4) Show full name in the page’s header span.username
-  const usernameSpan = document.querySelector('.username');
+
   if (usernameSpan) {
     usernameSpan.textContent = `${profile.FirstName} ${profile.LastName}`;
   }

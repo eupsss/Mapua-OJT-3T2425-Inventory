@@ -24,6 +24,22 @@ body {
   min-height: 100vh;
 }
 
+body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url('../icons/MU\ Campus.jpg') center/cover no-repeat;
+  z-index: -2;
+}
+
+body::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3); /* dark overlay */
+  z-index: -1;
+}
+
 /* Sidebar */
 .sidebar {
   width: 240px;

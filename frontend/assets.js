@@ -30,16 +30,32 @@ let cursor      = 0;
 let currentCfg  = 1;
 
 // — AUTH & SIGNOUT —
+
+// — AUTH & SIGNOUT —
 const user = JSON.parse(sessionStorage.getItem('user'));
 if (!user) location.href = 'login.html';
-usernameElm.textContent = user.name;
+
+// get first name
+const firstName = user.name.trim().split(' ')[0];
+
+// set greeting + name
+usernameElm.textContent       = user.name;   // e.g. "Hi, Mark"
+document.querySelector('.user-name').textContent = `Hi, ${firstName}!`; // sidebar name
+
+signoutBtn.onclick = () => {
+  sessionStorage.removeItem('user');
+  location.href = 'login.html';
+};
+
+if (!user) location.href = 'login.html';
+
 signoutBtn.onclick = () => {
   sessionStorage.removeItem('user');
   location.href = 'login.html';
 };
 
 // — Sidebar avatar & name —
-document.querySelector('.user-name').textContent = user.name;
+
 document.querySelectorAll('.avatar').forEach(el => {
   const initials = user.name
     .split(' ')

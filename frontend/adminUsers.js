@@ -9,18 +9,23 @@
   }
 
   // 2️⃣ Render avatar, name & sign-out
-  const initials = me.name
-    .split(' ')
-    .map(n => n[0].toUpperCase())
-    .slice(0,2).join('');
-  document.querySelectorAll('.avatar').forEach(el => el.textContent = initials);
-  document.querySelectorAll('.profile-name, .username')
-    .forEach(el => el.textContent = me.name);
-  document.getElementById('signout-btn')
-    .addEventListener('click', () => {
-      sessionStorage.removeItem('user');
-      location.href = 'login.html';
-    });
+// 2️⃣ Render avatar, name & sign-out
+const initials = me.name
+  .split(' ')
+  .map(n => n[0].toUpperCase())
+  .slice(0,2)
+  .join('');
+document.querySelectorAll('.avatar').forEach(el => el.textContent = initials);
+
+const firstName = me.name.trim().split(' ')[0];
+document.querySelectorAll('.profile-name, .username')
+  .forEach(el => el.textContent = "Hi, " + firstName + "!");
+
+document.getElementById('signout-btn')
+  .addEventListener('click', () => {
+    sessionStorage.removeItem('user');
+    location.href = 'login.html';
+  });
 
   // 3️⃣ Setup table & “Add User” button
   const tbody = document.querySelector('#usersTable tbody');

@@ -13,20 +13,27 @@ let currentSort = { key: null, asc: true };
 let latestRows = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-  //── Inject user info
-  document.querySelector('.username').textContent = user.name;
-  document.querySelectorAll('.avatar, .user-name').forEach(el => {
-    if (el.classList.contains('user-name')) {
-      el.textContent = user.name;
-    } else {
-      const initials = user.name
-        .split(' ')
-        .map(n => n[0]?.toUpperCase() || '')
-        .join('')
-        .slice(0, 2);
-      el.textContent = initials;
-    }
-  });
+//── Inject user info (corrected)
+const firstName = user.name.trim().split(' ')[0];
+
+// top‐bar username: first name only
+document.querySelector('.username').textContent = user.name;
+
+// sidebar .user-name: greeting + first name
+document.querySelector('.user-name').textContent = `Hi, ${firstName}!`;
+
+// avatar initials stay the same
+document.querySelectorAll('.avatar').forEach(el => {
+  const initials = user.name
+    .split(' ')
+    .map(n => n[0]?.toUpperCase()||'')
+    .join('')
+    .slice(0,2);
+  el.textContent = initials;
+});
+
+
+
 
   //── Sign out
   document.getElementById('signout-btn').addEventListener('click', () => {

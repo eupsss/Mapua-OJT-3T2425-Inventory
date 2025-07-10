@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -81,17 +82,40 @@
   <div class="main-content">
     <!-- header, filters, cards, charts as before -->
     <header class="header toolbar">
-      <div class="toolbar-left">
-        <h2>Inventory</h2>
-        <span class="badge">v3.0</span>
-      </div>
-      <div class="toolbar-center">
-        <input type="text" class="search-input" placeholder="🔍 Search..." />
-      </div>
-      <div class="toolbar-right">
-        <div class="avatar"></div>
-      </div>
-    </header>
+  <div class="toolbar-left">
+    <h2>Inventory</h2>
+    <span class="badge">v3.0</span>
+  </div>
+
+  <div class="toolbar-center">
+    <div class="search-wrap">
+      <input type="text" class="search-input" placeholder="🔍 Search..." />
+    </div>
+  </div>
+
+  <div class="toolbar-right">
+    <!-- Filter button + dropdown -->
+    <button class="filter-btn">🔧 Filter</button>
+    <div id="filter-panel" class="filter-panel hidden">
+      <strong>📊 Show charts 📊</strong>
+      <ul>
+        <li><label><input type="checkbox" data-chart="PC Status Breakdown" checked> PC Status Breakdown</label></li>
+        <li><label><input type="checkbox" data-chart="Checks Over Time" checked> Checks Over Time</label></li>
+        <li><label><input type="checkbox" data-chart="Average Time to Fix" checked> Average Time to Fix</label></li>
+        <li><label><input type="checkbox" data-chart="Defects by Room" checked> Defects by Room</label></li>
+        <li><label><input type="checkbox" data-chart="Issues Breakdown" checked> Issues Breakdown</label></li>
+        <li><label><input type="checkbox" data-chart="Fixes Over Time" checked> Fixes Over Time</label></li>
+        <li><label><input type="checkbox" data-chart="Daily Defects Trend" checked> Daily Defects Trend</label></li>
+        <li><label><input type="checkbox" data-chart="Issue Mix by Month" checked> Issue Mix by Month</label></li>
+        <li><label><input type="checkbox" data-chart="Room Uptime Ranking" checked> Room Uptime Ranking</label></li>
+      </ul>
+    </div>
+
+    <!-- avatar circle -->
+    <div class="avatar">MF</div>
+  </div>
+</header>
+
 
     <main>
       <!-- Month picker -->

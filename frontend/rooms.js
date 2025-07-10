@@ -382,8 +382,9 @@ document.addEventListener('DOMContentLoaded', () => {
   signOutBtn       = $('#signout-btn');
 
   // show user
-  $('.username').textContent = user.name;
-  $('.user-name').textContent = user.name;
+  const firstName = user.name.trim().split(' ')[0];
+  $('.username').textContent = user.name;    
+  $('.user-name').textContent = `Hi,  ${firstName}!`;
   document.querySelectorAll('.avatar').forEach(el => {
     const initials = user.name.split(' ')
                        .map(n => n[0].toUpperCase())

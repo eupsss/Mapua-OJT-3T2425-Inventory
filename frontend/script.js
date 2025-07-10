@@ -160,7 +160,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // — Populate username & avatar initials —
   const userNameEl = document.querySelector('.user-name');
-  if (userNameEl) userNameEl.textContent = user.name;
+  if (userNameEl) {
+  const parts = user.name.trim().split(' ');
+  userNameEl.textContent = "Hi, " + parts[0] + "!";  // last name only
+}
   const avatarEls = document.querySelectorAll('.avatar');
   avatarEls.forEach(el => {
     const initials = user.name
@@ -278,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
       window.open(`export.html?month=${encodeURIComponent(month)}`, '_blank');
     });
   }
+  
 });
 
 /* ─── DASHBOARD REFRESH & CHART DRAWERS ───────────────────── */
@@ -381,8 +385,8 @@ async function drawStatusChart(ym) {
     ctx.textBaseline = 'middle';
 
     // Two lines, stacked inside hole
-    ctx.fillText('Total', centerX, centerY - fontSize * 0.3);
-    ctx.fillText(totalPCs, centerX, centerY + fontSize * 0.7);
+    ctx.fillText('', centerX, centerY - fontSize * 0.3);
+    ctx.fillText(totalPCs, centerX, centerY  * 1.0);
 
     ctx.restore();
   }

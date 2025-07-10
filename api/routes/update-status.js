@@ -23,14 +23,7 @@ router.post('/', async (req, res) => {
   try {
     await conn.beginTransaction();
 
-    /*
-      -------------------------------------------------------------------------
-      3️⃣  Grab the next *global* sequence number
-          – we removed the CURDATE() filter so the serial keeps growing forever
-            (000000169 → 000000170 → …) and never restarts at 1.
-          – CAST() converts the string suffix to a number; Number() turns the
-            MySQL string result into a real JS number so +1 is arithmetic.
-      -------------------------------------------------------------------------*/
+
     const [[{ maxSeq }]] = await conn.execute(
       `SELECT COALESCE(MAX(CAST(SUBSTRING_INDEX(ServiceTicketID, '-', -1) AS UNSIGNED)), 0) AS maxSeq
          FROM ComputerStatusLog`
