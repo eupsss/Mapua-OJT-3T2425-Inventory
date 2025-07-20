@@ -384,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // show user
   const firstName = user.name.trim().split(' ')[0];
   $('.username').textContent = user.name;    
-  $('.user-name').textContent = `Hi,  ${firstName}!`;
+  $('.user-name').textContent = `Hi,  ${firstName}!   `;
   document.querySelectorAll('.avatar').forEach(el => {
     const initials = user.name.split(' ')
                        .map(n => n[0].toUpperCase())
