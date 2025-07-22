@@ -10,7 +10,14 @@ if (!user) {
 // ───── 1. Convenience helpers ─────────────────────────────────
 const $  = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
-const nowDateTimeLocal = () => new Date().toISOString().slice(0,16);
+const nowDateTimeLocal = () =>
+  new Date().toLocaleString('sv-SE', {
+    timeZone: 'Asia/Manila',
+    hour12: false
+  })
+  .replace(' ', 'T')
+  .slice(0,16);
+
 const API_BASE = '../api/';
 
 // ───── 2. State & DOM refs ────────────────────────────────────
@@ -138,7 +145,11 @@ async function loadPCs(roomID) {
 }
 
 // ───── 9. Defect modal ─────────────────────────────────────────
+
+
+// wireDefectModal with reportedOn
 function wireDefectModal() {
+  // Cancel
   btnDefectCancel.addEventListener('click', () => {
     defectForm.reset();
     otherWrapper.classList.add('hidden');
@@ -146,6 +157,7 @@ function wireDefectModal() {
     pending = null;
   });
 
+  // “Other” checkbox
   otherCheckbox.addEventListener('change', () => {
     if (otherCheckbox.checked) {
       otherWrapper.classList.remove('hidden');
@@ -156,36 +168,49 @@ function wireDefectModal() {
     }
   });
 
+  // Submit defect
   defectForm.addEventListener('submit', async e => {
     e.preventDefault();
     if (!pending) return;
-    let issues = $$('input[name="issues"]:checked', defectForm).map(cb=>cb.value);
+
+    // 1) Gather issues
+    let issues = $$('input[name="issues"]:checked', defectForm)
+                  .map(cb => cb.value);
     if (issues.includes('Other')) {
       const txt = otherTextInput.value.trim();
-      issues = txt ? issues.filter(i=>'Other'!==i).concat(txt)
-                   : issues.filter(i=>'Other'!==i);
+      issues = txt
+        ? issues.filter(i => i!=='Other').concat(txt)
+        : issues.filter(i => i!=='Other');
     }
 
+    // 2) Manila timestamp
+    const reportedOn = nowDateTimeLocal();  // e.g. "2025-07-22T14:30"
+
+    // 3) UI reset & visual update
     const { card, roomID, pc } = pending;
     defectModal.classList.add('hidden');
     defectForm.reset();
     otherWrapper.classList.add('hidden');
     pending = null;
-
     setCardVisual(card, 'Defective');
 
+    // 4) POST with reportedOn
     try {
-      const { serviceTicketID } = await fetchJSON(API_BASE + 'update-status', {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json' },
-        body: JSON.stringify({
-          roomID,
-          pcNumber: pc,
-          status: 'Defective',
-          issues,
-          userID: user.id
-        })
-      });
+      const { serviceTicketID } = await fetchJSON(
+        API_BASE + 'update-status',
+        {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify({
+            roomID,
+            pcNumber: pc,
+            status: 'Defective',
+            issues,
+            reportedOn,     // ← new
+            userID: user.id
+          })
+        }
+      );
       card.dataset.ticket = serviceTicketID;
     } catch (err) {
       console.error(err);
@@ -202,11 +227,14 @@ function wireFixModal() {
     currentCard = null;
   });
 
-  fixForm.addEventListener('submit', async e => {
+    fixForm.addEventListener('submit', async e => {
     e.preventDefault();
     const roomID   = fixModal.dataset.room;
     const pc       = fixModal.dataset.pc;
-    const fixedOn  = fixDateTime.value;
+    // 1) grab the raw picker value:
+    const raw      = fixDateTime.value;       // e.g. "2025-07-22T14:40"
+    // 2) convert to MySQL DATETIME format:
+    const fixedOn  = raw.replace('T', ' ') + ':00';  // "2025-07-22 14:40:00"
     const name     = fixerInput.value.trim();
     const usr      = userRoster.find(u => u.fullName === name);
     if (!usr) return alert('Pick a name from the list');
@@ -216,14 +244,18 @@ function wireFixModal() {
       return alert('Missing ticket ID – please report the defect first');
     }
 
+    // debug: make sure it’s what you expect
+    console.log('📤 sending fixedOn →', fixedOn);
+
     try {
+      // update the status‐log
       await fetchJSON(API_BASE + 'fix', {
         method: 'POST',
         headers: { 'Content-Type':'application/json' },
         body: JSON.stringify({
           roomID,
           pcNumber: pc,
-          fixedOn,
+          fixedOn,      // now in "YYYY-MM-DD HH:MM:00"
           fixedBy: usr.userId,
           serviceTicketID
         })

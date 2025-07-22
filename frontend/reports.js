@@ -34,7 +34,6 @@ document.querySelectorAll('.avatar').forEach(el => {
 
 
 
-
   //── Sign out
   document.getElementById('signout-btn').addEventListener('click', () => {
     sessionStorage.removeItem('user');
@@ -142,12 +141,23 @@ function populateDropdowns(rows) {
   });
 }
 
+// Helper: turn any ISO string into “YYYY-MM-DDTHH:mm:ss” in Asia/Manila
+function manilaTime(iso) {
+  if (!iso) return '';
+  return new Date(iso)
+    .toLocaleString('sv-SE', {       // ascii hyphen between "sv" and "SE"
+      timeZone: 'Asia/Manila',
+      hour12: false
+    })
+    .replace(' ', 'T');
+}
+
 function renderTableRows(rows) {
   const tbody = document.querySelector('#reportsTable tbody');
   tbody.innerHTML = '';
   let filtered = [...rows];
 
-  // dropdown filters
+  // Dropdown filters
   document.querySelectorAll('.dropdown').forEach(dd => {
     const field   = dd.dataset.field;
     const checked = [...dd.querySelectorAll('input:checked')].map(i => i.value);
@@ -159,7 +169,7 @@ function renderTableRows(rows) {
     }
   });
 
-  // date filter (YYYY-MM-DD)
+  // Fixed-on date picker filter (YYYY-MM-DD)
   const dateVal = document.getElementById('fixed-date-filter').value;
   if (dateVal) {
     filtered = filtered.filter(r => {
@@ -168,7 +178,7 @@ function renderTableRows(rows) {
     });
   }
 
-  // sorting
+  // Sorting
   if (currentSort.key) {
     filtered.sort((a, b) => {
       let av = a[currentSort.key] || '';
@@ -177,28 +187,35 @@ function renderTableRows(rows) {
         av = Date.parse(av) || 0;
         bv = Date.parse(bv) || 0;
       }
-      if (av < bv) return currentSort.asc ? -1 : 1;
-      if (av > bv) return currentSort.asc ? 1 : -1;
-      return 0;
+      return av < bv
+        ? (currentSort.asc ? -1 : 1)
+        : (av > bv
+           ? (currentSort.asc ? 1 : -1)
+           : 0);
     });
   }
 
-  // empty state
+  // Empty state
   if (!filtered.length) {
     tbody.innerHTML =
       '<tr><td colspan="9" class="center">No records found.</td></tr>';
     return;
   }
 
-  // render
+  // Render
   filtered.forEach(r => {
-    const fixedOnCell = r.Status === 'Fixed' ? (r.FixedOn || '') : '';
-    const fixedByCell = r.Status === 'Fixed' ? (r.FixedBy || '') : '';
+    const dateCell    = manilaTime(r.CheckDate);
+    const fixedOnCell = r.Status === 'Fixed'
+      ? manilaTime(r.FixedOn)
+      : '';
+    const fixedByCell = r.Status === 'Fixed'
+      ? (r.FixedBy || '')
+      : '';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${r.ServiceTicketID}</td>
-      <td>${r.CheckDate}</td>
+      <td>${dateCell}</td>
       <td>${r.RoomID}</td>
       <td>${r.PCNumber}</td>
       <td>${r.DisplayStatus}</td>

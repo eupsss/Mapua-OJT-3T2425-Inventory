@@ -23,8 +23,8 @@ CREATE TABLE `Users` (
   `ContactNo`    VARCHAR(30),
   `PasswordHash` VARCHAR(255),
   `Role`         ENUM('Admin','Viewer','Ticketing','Inventory')
-                   NOT NULL DEFAULT 'Inventory',_
-  `CreatedAt`    DATETIME     NOT NULL DEFAULT CURRENTTIMESTAMP,
+                   NOT NULL DEFAULT 'Inventory',
+  `CreatedAt`    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX `idx_users_role` (`Role`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

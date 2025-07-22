@@ -1,6 +1,6 @@
 {
   "name": "ojt2-api",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "description": "Node/Express API for Mapúa Inventory Dashboard",
   "type": "module",
   "main": "api/index.js",

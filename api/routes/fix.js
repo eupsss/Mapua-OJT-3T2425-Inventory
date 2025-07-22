@@ -14,17 +14,15 @@ router.post('/', async (req, res, next) => {
   try {
     await conn.beginTransaction();
 
-    // 1) update the original status‐log row to Working
+    // 1) mark that ticket back to Working—but leave LoggedAt and UserID intact
     await conn.query(
       `UPDATE ComputerStatusLog
-         SET Status    = 'Working',
-             UserID    = ?,
-             LoggedAt  = ?
+         SET Status = 'Working'
        WHERE ServiceTicketID = ?`,
-      [ fixedBy, fixedOn, serviceTicketID ]
+      [ serviceTicketID ]
     );
 
-    // 2) upsert the Fixes record
+    // 2) upsert the Fixes record with your chosen timestamp
     await conn.query(
       `INSERT INTO Fixes
          (RoomID, PCNumber, FixedAt, FixedBy, ServiceTicketID)
@@ -35,7 +33,7 @@ router.post('/', async (req, res, next) => {
       [ roomID, pcNumber, fixedOn, fixedBy, serviceTicketID ]
     );
 
-    // 3) update the live Computers snapshot
+    // 3) update your live Computers snapshot
     await conn.query(
       `UPDATE Computers
          SET Status      = 'Working',

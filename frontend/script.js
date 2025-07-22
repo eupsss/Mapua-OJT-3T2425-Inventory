@@ -432,35 +432,70 @@ async function drawChecksChart(ym) {
 
 /* ─── 3) Average Time to Fix ─────────────────────────────── */
 async function drawAvgFixChart(ym) {
-  const res = await fetch(`${API_BASE}/avg-fix-time?month=${ym}`);
-  if (!res.ok) return;
-  const { avgHours=0 } = await res.json();
-  avgFixChart = setChart(
-    avgFixChart,
-    document.getElementById('avgFixTimeChart').getContext('2d'),
-    {
-      type: 'bar',
-      data: {
-        labels: ['Avg hrs'],
-        datasets: [{ data:[avgHours], borderRadius:8, borderWidth:1 }]
-      },
-      options: {
-        plugins: {
-          legend: { display:false },
-          tooltip: {
-            callbacks: { label: ctx => `${ctx.parsed.y.toFixed(1)} hrs` }
-          }
-        },
-        scales: { y: { beginAtZero:true } },
-        onResize: chart => applyThreshold(
-          chart.data.datasets[0],
-          1,
-          getCSSVar('--color-primary'),
-          getCSSVar('--color-accent')
-        )
-      }
+  try {
+    // 1) fetch & parse
+    const res = await fetch(`${API_BASE}/avg-fix-time?month=${ym}`);
+    if (!res.ok) throw new Error(`API ${res.status}`);
+    const payload = await res.json();
+    console.log('avg-fix-time payload:', payload);
+
+    // 2) coerce to Number
+    const avgH = Number(payload.avgHours);
+    const avgHours = isNaN(avgH) ? 0 : avgH;
+
+    // 3) grab the canvas & guard
+    const canvas = document.getElementById('avgFixTimeChart');
+    if (!canvas) {
+      console.warn('avgFixTimeChart <canvas> not found');
+      return;
     }
-  );
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      console.warn('Could not getContext on avgFixTimeChart');
+      return;
+    }
+
+    // 4) draw the chart, telling Chart.js how tall to go
+    avgFixChart = setChart(
+      avgFixChart,
+      ctx,
+      {
+        type: 'bar',
+        data: {
+          labels: ['Avg hrs'],
+          datasets: [{
+            data: [avgHours],
+            borderRadius: 8,
+            borderWidth: 1,
+            // optional: color‐threshold in place of onResize
+            backgroundColor: avgHours < 1
+              ? getCSSVar('--color-primary')
+              : getCSSVar('--color-accent')
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.parsed.y.toFixed(2)} hrs`
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              // ensure the bar is fully visible
+              suggestedMax: Math.ceil(avgHours)
+            }
+          }
+        }
+      }
+    );
+  } catch (err) {
+    console.error('❌ drawAvgFixChart error:', err);
+  }
 }
 
 /* ─── 4) Defects by Room ─────────────────────────────────── */
