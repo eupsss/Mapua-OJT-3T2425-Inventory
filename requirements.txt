@@ -7,8 +7,8 @@ In MySQL Shell
 
 
 Now you will source, in MySQL shell
-\source "C:\xampp\htdocs\OJT\MapuaInventory.sql"
-\source "C:\xampp\htdocs\OJT\computer_assets_126rows_insert.sql"
+\source "C:\xampp\htdocs\Mapua-OJT-3T2425-Inventory-main\MapuaInventory.sql"
+\source "C:\xampp\htdocs\Mapua-OJT-3T2425-Inventory-main\computer_assets_126rows_insert.sql"
 
 
 
