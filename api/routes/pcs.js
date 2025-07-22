@@ -4,11 +4,7 @@ import { pool }  from '../db.js';
 
 const router = express.Router();
 
-/**
- * GET /api/pcs?room=MPO310
- * Returns all PCs for a given room,
- * including the live status and (if defective) its open ServiceTicketID.
- */
+
 router.get('/', async (req, res, next) => {
   const roomID = req.query.room;
   if (!roomID) {

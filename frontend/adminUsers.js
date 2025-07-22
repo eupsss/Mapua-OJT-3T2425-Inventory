@@ -30,7 +30,7 @@ document.getElementById('signout-btn')
   // 3️⃣ Setup table & “Add User” button
   const tbody = document.querySelector('#usersTable tbody');
   document.getElementById('add-user-btn')
-    .addEventListener('click', () => location.href = 'user-add.html');
+    .addEventListener('click', () => location.href = 'register.html');
 
   // 4️⃣ Load & render users
   async function loadUsers() {
