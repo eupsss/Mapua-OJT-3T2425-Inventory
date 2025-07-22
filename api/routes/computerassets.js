@@ -1,17 +1,16 @@
 import express from 'express';
-import { pool } from '../db.js';          // ← mysql2 / promise pool
+import { pool } from '../db.js';         
 
 const router = express.Router();
 
-/* ─────────────────────────────  HELPERS  ───────────────────────────── */
-// Build a safe INSERT/UPDATE dynamically
+
 const toSql = obj => ({
   cols   : Object.keys(obj).map(k => `\`${k}\``).join(','),
   vals   : Object.values(obj),
   qMarks : Object.keys(obj).map(() => '?').join(',')
 });
 
-/* ────────────────  NEW: APPEND-ONLY HISTORY ROUTE  ───────────────── */
+
 router.post('/history', async (req, res, next) => {
   try {
     const data = req.body;
@@ -28,15 +27,7 @@ router.post('/history', async (req, res, next) => {
     next(err);
   }
 });
-/* ────────────────────────────  READ  (GET)  ──────────────────────────
-   #1  /api/computer-assets?room=MPO310
-       ⟶ active hardware grid (RetiredAt IS NULL)
 
-   #2  /api/computer-assets?room=MPO310&pc=05&history=1
-       ⟶ full life-cycle history for that PC
-
-   #3  /api/computer-assets    ⟶ everything (admin view)
------------------------------------------------------------------------- */
 router.get('/', async (req, res, next) => {
   try {
     const { room, pc, history } = req.query;
@@ -85,11 +76,7 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-/* ─────────────────────────── CREATE  (POST) ──────────────────────────
-   • Inserts a new “asset row”.  
-   • If there is still an *active* asset for the same RoomID+PCNumber,
-     we auto-retire it first (sets RetiredAt = NOW()).
------------------------------------------------------------------------- */
+
 router.post('/', async (req, res, next) => {
   try {
     const data = req.body;
