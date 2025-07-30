@@ -213,6 +213,7 @@
   CREATE TABLE `Students` (
     `StudentNo` CHAR(10) NOT NULL COMMENT 'YYYYxxxxxx',
     `FirstName` VARCHAR(50) NOT NULL,
+    `MiddleName` VARCHAR(50),
     `LastName`  VARCHAR(50) NOT NULL,
     `ContactNo` VARCHAR(30),
     `CreatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -225,7 +226,7 @@
     `StudentNo`    CHAR(10)     NOT NULL,
     `ItemCategory` ENUM(
         'RJ45','Serial Cable','Keyboard','Mouse',
-        'PowerSupply','Other'
+        'PowerSupply','Projector', 'Speaker', 'Other'
       ) NOT NULL DEFAULT 'Other',
     `ItemDetails`  VARCHAR(100) NULL,
     `BorrowedAt`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Time the borrow request was created',
