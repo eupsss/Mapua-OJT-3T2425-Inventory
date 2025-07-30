@@ -1,0 +1,575 @@
+/* RFID Page Specific Styles */
+
+/* Header (for consistency within main-content, overrides general toolbar for this page) */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--color-white);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    margin-bottom: 1.5rem;
+}
+
+.toolbar h2 {
+    font-size: 1.8rem; /* Match your general h2 size */
+    color: var(--color-text); /* Use main text color */
+    margin: 0;
+}
+
+.toolbar .username {
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.toolbar .avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--color-primary);
+    color: var(--color-white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-left: 0.5rem; /* Spacing from username */
+}
+
+
+/* Internal Tab Navigation Styling for RFID page */
+.tab-navigation {
+    display: flex;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--color-border); /* Use your border color */
+}
+
+.tab-btn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    background-color: transparent;
+    color: var(--color-text-secondary); /* Use your secondary text color */
+    font-size: 1rem;
+    cursor: pointer;
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px; /* Pulls button slightly up to align border */
+    font-family: var(--font-family-primary); /* Ensure consistent font */
+}
+
+.tab-btn:hover {
+    color: var(--color-primary);
+}
+
+.tab-btn.active {
+    color: var(--color-primary);
+    font-weight: bold;
+    border-bottom-color: var(--color-primary);
+}
+
+/* Specific styling for tab content containers on RFID page */
+.tab-content {
+    display: none;
+    padding: 1.5rem; /* Consistent padding for all tab content */
+    background-color: var(--color-white); /* White background for the content areas */
+    border-radius: 8px; /* Rounded corners for content cards */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); /* Soft shadow for content cards */
+    margin-bottom: 2rem; /* Space below each tab content card */
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Form Groups and Inputs */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-border); /* Use your border color */
+    border-radius: 5px; /* Consistent small radius */
+    background-color: var(--color-white); /* Always white background for inputs */
+    color: var(--color-text);
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+    font-family: var(--font-family-primary); /* Ensure consistent font */
+}
+
+.form-group input[type="file"] {
+    padding: 0.5rem 0; /* Adjust padding for file input specific behavior */
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="date"]:focus,
+.form-group select:focus,
+.form-group input[type="file"]:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.2); /* Using RGB from --color-primary */
+    outline: none;
+}
+
+/* --- CRITICAL MODIFICATIONS START: Make readonly inputs look more clickable/interactive --- */
+.form-group input[readonly] {
+    background-color: var(--color-bg);
+    cursor: pointer; /* Change cursor to pointer to indicate it's clickable */
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.form-group input[readonly]:hover {
+    border-color: var(--color-primary); /* Primary color border on hover */
+    box-shadow: 0 0 0 2px rgba(200, 16, 46, 0.1); /* Subtle glow on hover */
+    background-color: var(--color-light-hover, #f8f8f8); /* Slightly lighter background on hover */
+    border-width: 2px; /* Make the border thicker on hover for more emphasis */
+}
+
+.form-group input[readonly]:active {
+    background-color: var(--color-primary-light, #f0e6e7); /* Even lighter background on click/active */
+    border-color: var(--color-primary-dark);
+    border-width: 2px; /* Keep border thicker on active */
+}
+/* --- CRITICAL MODIFICATIONS END --- */
+
+
+/* Utility Classes (specific to RFID tab, aligning with your general spacing) */
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; }
+.ml-2 { margin-left: 0.5rem; }
+.mr-2 { margin-right: 0.5rem; }
+.flex-grow { flex-grow: 1; }
+.grid { display: grid; }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.col-span-2 { grid-column: span 2 / span 2; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-xs { font-size: 0.75rem; }
+/* Use your defined variables for status texts */
+.text-secondary { color: var(--color-text-secondary); }
+.text-success { color: var(--color-success); }
+.text-error { color: var(--color-error); }
+
+
+/* Buttons (enhanced for RFID tab, using your primary/white colors) */
+.btn-primary, .btn-light {
+    padding: 0.8rem 1.4rem; /* Consistent padding */
+    border-radius: 5px; /* Consistent border-radius */
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+    font-family: var(--font-family-primary); /* Ensure consistent font */
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border: 1px solid var(--color-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    box-shadow: 0 4px 8px rgba(200, 16, 46, 0.2); /* Using RGB from --color-primary */
+    transform: translateY(-1px); /* Slight lift effect */
+}
+
+.btn-light {
+    background-color: transparent;
+    color: var(--color-text);
+    border: 1px solid var(--color-border); /* Use your border color */
+}
+
+.btn-light:hover {
+    background-color: var(--color-bg); /* Use your general bg for light button hover */
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Smaller button for "Clear Image" */
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9em;
+}
+
+/* Tables (enhanced for RFID tab, using your color variables) */
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 1rem;
+    background-color: var(--color-white); /* White background for table */
+    border-radius: 8px; /* Rounded corners for table */
+    overflow: hidden; /* Ensures rounded corners clip content */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* Soft shadow for table */
+    font-family: var(--font-family-primary); /* Ensure consistent font */
+}
+
+table thead {
+    background-color: var(--color-bg); /* Use your general background for table header */
+    border-bottom: 1px solid var(--color-border);
+}
+
+table th {
+    padding: 1rem 1rem; /* More padding */
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-text); /* Use main text color */
+    white-space: nowrap;
+}
+
+table td {
+    padding: 1rem 1rem; /* More padding */
+    border-bottom: 1px solid var(--color-border); /* Use your border color for cell borders */
+    color: var(--color-text);
+    vertical-align: middle;
+}
+
+table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+table tbody tr:hover {
+    background-color: var(--color-bg); /* Subtle hover effect for rows using your bg */
+}
+
+.actions {
+    text-align: center; /* Center buttons in actions column */
+}
+
+.actions button {
+    margin: 0 0.25rem; /* Adjust margin */
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.actions .delete-rfid-btn {
+    background-color: var(--color-error); /* Use your error color */
+    color: var(--color-white);
+    border: 1px solid var(--color-error);
+}
+
+.actions .delete-rfid-btn:hover {
+    background-color: #A10B26; /* Slightly darker red */
+    transform: translateY(-1px);
+}
+
+/* Floating Time */
+.floating-time {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    background: var(--color-white); /* Use your white background */
+    color: var(--color-text); /* Use your general text color */
+    padding: .5rem .75rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-family: var(--font-family-primary);
+    font-size: .95rem;
+    text-align: center;
+    line-height: 1.2;
+    z-index: 1000;
+}
+
+.floating-time .time {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.floating-time .date {
+    display: block;
+    font-family: var(--font-family-primary);
+    font-size: .85rem;
+    margin-top: .25rem;
+    color: var(--color-primary-dark);
+}
+
+/* --- Specific RFID Scan Tab Styles --- */
+
+/* Adjust spacing for the Last Scanned Tag section */
+.rfid-scan-input-group {
+    display: flex;
+    flex-direction: column; /* Stack label and input */
+    align-items: flex-start; /* Align label to the start */
+    margin-bottom: 1.5rem; /* Adjust overall bottom margin */
+}
+
+.rfid-scan-input-group label {
+    margin-bottom: 0.2rem; /* Reduce space between label and input */
+    font-size: 0.95rem; /* Slightly smaller for the label */
+    color: var(--color-text-secondary); /* A bit lighter color for the label */
+}
+
+/* Make Last Scanned Tag input bigger and red */
+#rfidInputDisplay { /* Corrected ID from #rfidInput to #rfidInputDisplay based on provided HTML */
+    padding: 1rem 1.25rem; /* Larger padding for display input */
+    font-size: 2.2rem; /* Much larger font size */
+    font-weight: bold;
+    text-align: center;
+    background-color: var(--color-bg); /* Use a softer background for display */
+    border: 2px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-primary); /* Make RFID input text red */
+}
+
+/* Add an icon/highlight to the RFID input for visual cue during active scan */
+#rfidInputDisplay.active-scan {
+    border-color: var(--color-accent); /* Highlight border during active scan */
+    box-shadow: 0 0 0 4px rgba(255, 199, 44, 0.4); /* Yellow glow, assuming --color-accent is a yellow/gold */
+}
+
+/* Student Profile Display on Scan Tab (enhanced) */
+.student-info-display {
+    display: flex;
+    align-items: center; /* Vertically align items */
+    gap: 2rem;
+    margin-top: 2rem;
+    padding: 2rem; /* Increased padding around the whole section */
+    background-color: var(--color-white);
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    /* NEW: Subtle gradient background */
+    background: linear-gradient(135deg, var(--color-white) 90%, rgba(200, 16, 46, 0.03) 100%); /* Light red hint */
+    position: relative; /* Needed for absolute positioning of the 'Student Profile' label */
+}
+
+/* This targets the "Student Profile" label outside the circle (keeping it as it was originally) */
+.student-info-display .student-profile-label {
+    position: absolute;
+    top: 1rem; /* Adjust as needed */
+    left: 2rem; /* Adjust as needed */
+    font-size: 0.9rem; /* Smaller, less intrusive */
+    color: var(--color-text-secondary); /* Muted color */
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.student-profile-picture {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    object-fit: cover; /* Ensure the image covers the circle without distortion */
+    border: 6px solid var(--color-primary);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+    display: flex; /* Enable flexbox for centering content */
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+    position: relative; /* For absolute positioning of text */
+    overflow: hidden; /* Ensure anything outside the circle is clipped */
+    background-color: var(--color-bg); /* Fallback background for circle */
+    /* Add a subtle inset shadow to make it feel deeper */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), inset 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* --- CRITICAL MODIFICATIONS START: Control text inside the circle --- */
+.student-profile-picture::before {
+    /* Set content to "Photo" when no image is present. */
+    /* If "dent Profile" still appears, it must be an HTML element, see next rule. */
+    content: "Photo";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.1rem; /* Slightly larger for clarity */
+    font-weight: 600; /* Bolder text */
+    color: var(--color-text-secondary); /* Adjust color as needed */
+    z-index: 1; /* Ensure text is above placeholder if no image */
+    text-align: center;
+    pointer-events: none; /* Make text not interfere with clicks */
+    white-space: nowrap; /* Prevent "Photo" from wrapping */
+}
+
+/* This rule attempts to hide any *direct child span/div* within the picture circle
+   that might contain the "dent Profile" text, EXCEPT the actual <img> or ::before. */
+.student-profile-picture > span,
+.student-profile-picture > div {
+    /* IMPORTANT: If 'dent Profile' is in a specific class, replace 'span, div' with that class, e.g.,
+       .student-profile-picture .your-specific-class-for-text { display: none; } */
+    display: none;
+}
+/* --- CRITICAL MODIFICATIONS END --- */
+
+
+.student-profile-picture img {
+    display: block; /* Remove extra space below image */
+    width: 100%; /* Ensure image fills the container */
+    height: 100%;
+    border-radius: 50%; /* Maintain circular shape */
+    object-fit: cover; /* Prevent cropping if aspect ratio differs */
+    z-index: 2; /* Ensure image is above the placeholder text */
+}
+
+.student-details {
+    flex-grow: 1;
+}
+
+/* Make Student Name and Student ID bigger and red */
+#student-name,
+#student-id {
+    font-size: 1.8rem; /* Larger font size for name and ID */
+    font-weight: bold;
+    color: var(--color-primary); /* Make name and ID text red */
+    padding: 0.75rem 1rem; /* Adjust padding for bigger text */
+    border: 1px solid var(--color-border); /* Keep border consistent */
+    border-radius: 5px; /* Keep border-radius consistent */
+    background-color: var(--color-bg); /* Keep background consistent */
+    cursor: not-allowed; /* Keep cursor as not-allowed if it's not directly editable */
+}
+
+/* Adjustments for the status message below RFID input */
+#rfid-status span {
+    font-size: 1.1rem; /* Slightly larger status message */
+    font-weight: 600;
+    margin-top: 1rem; /* Space from input */
+    display: block; /* Ensures it takes full width for centering */
+}
+
+/* --- Management Tab & Table Styles --- */
+
+/* Profile Picture Preview on Management Tab (enhanced) */
+.profile-preview-thumb {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg); /* Use your general background color */
+    flex-shrink: 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Subtle shadow for preview */
+}
+
+/* Table Profile Thumbnail (enhanced) */
+.table-profile-thumb {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+/* Style the add RFID form itself as a card */
+#addRfidForm {
+    background-color: var(--color-white); /* White background for form card */
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+}
+
+/* Specific styling for h3 within tab content for better hierarchy */
+.tab-content h3 {
+    font-size: 1.5rem; /* Larger than default h3 in styles.css for this context */
+    color: var(--color-primary); /* Use primary color for main headings */
+    margin-bottom: 1.5rem; /* More space below heading */
+    text-transform: uppercase; /* Make headings stand out */
+    letter-spacing: 0.05em; /* Add some letter spacing */
+    border-bottom: 2px solid var(--color-border); /* Subtle line below heading */
+    padding-bottom: 0.5rem;
+}
+
+/* Specific styling for h4 within tab content */
+.tab-content h4 {
+    font-size: 1.2rem;
+    color: var(--color-text); /* Use general text color for sub-headings */
+    margin-bottom: 1rem;
+    margin-top: 1.5rem; /* Space above sub-headings */
+}
+
+/* Enhanced Table Styling for logs and reports */
+table {
+    border: 1px solid var(--color-border); /* Add a border around the entire table */
+}
+
+table thead th {
+    background-color: var(--color-primary-dark); /* Darker red for table header */
+    color: var(--color-white); /* White text on dark red header */
+    text-transform: uppercase;
+    font-size: 0.9em;
+    padding: 1.2rem 1rem; /* More vertical padding */
+}
+
+table tbody tr:nth-child(even) {
+    background-color: var(--color-bg); /* Zebra striping with your background color */
+}
+
+table tbody td {
+    color: var(--color-text-secondary); /* Default cell text to secondary color */
+    padding: 0.8rem 1rem; /* Adjust cell padding */
+}
+
+/* Style for the "Status" column to be more prominent */
+table td:last-child {
+    font-weight: bold;
+    color: var(--color-primary-dark); /* Make status text bolder and primary dark */
+}
+
+/* Specific colors for IN/OUT statuses if you want to highlight them */
+table td.status-time-in {
+    color: var(--color-success);
+}
+table td.status-time-out {
+    color: var(--color-error);
+}
+table td.status-manual {
+    color: var(--color-accent);
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .student-info-display {
+        flex-direction: column; /* Stack vertically on small screens */
+        text-align: center;
+        gap: 1.5rem;
+    }
+    .student-profile-picture {
+        margin-bottom: 1rem; /* Add space below picture when stacked */
+    }
+    .grid-cols-2 {
+        grid-template-columns: 1fr; /* Single column for form on small screens */
+    }
+    .col-span-2 {
+        grid-column: span 1 / span 1; /* Reset for single column */
+    }
+    /* Adjust label for "Last Scanned Tag" on smaller screens */
+    .rfid-scan-input-group label {
+        text-align: center;
+        width: 100%;
+    }
+}

@@ -12,17 +12,24 @@
   --color-text: #333;
   --color-bg: #F5F5F5;
   --color-white: #fff;
+
+  /* NEW: Additional color variables for consistency */
+  --color-text-secondary: #777777; /* Medium Gray for secondary text */
+  --color-border: #E0E0E0;       /* Light Gray border */
+  --color-success: #2E7D32;      /* Green for success messages */
+  --color-error: #D32F2F;        /* Red for error messages */
+  --font-family-primary: Verdana, Tahoma, Geneva, sans-serif; /* Adjusted to use Verdana first, then sans-serif fallback */
 }
 
 body {
   display: flex;
-  font-family: Verdana !important;
+  font-family: var(--font-family-primary); /* Use the new variable */
   background: var(--color-bg);
   color: var(--color-text);
   min-height: 100vh;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 14px;
-  line-height: 1.45;
+  /* Removed duplicate font-family and font-size/line-height here to rely on the new variable for primary font */
+  font-size: 14px; /* Keep consistent with your base font size */
+  line-height: 1.45; /* Keep consistent with your base line height */
 }
 
 /* ─── Sidebar ─────────────────────────────────────────────── */
@@ -88,8 +95,8 @@ body {
 }
 
 .sidebar nav li.active a {
-  background: #C8102E;
-  color: #fff;
+  background: var(--color-primary); /* Use variable for consistency */
+  color: var(--color-white); /* Use variable for consistency */
 }
 
 /* Icon spacing */
@@ -151,8 +158,8 @@ body {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: #C8102E;
-  color: #fff;
+  background: var(--color-primary); /* Use variable for consistency */
+  color: var(--color-white); /* Use variable for consistency */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -194,7 +201,7 @@ body {
   margin-bottom: 1.5rem;
 }
 
-.toolbar-left    { display: flex; align-items: center; gap: .5rem; }
+.toolbar-left     { display: flex; align-items: center; gap: .5rem; }
 .toolbar-right .avatar {
   width: 40px;
   height: 40px;
@@ -209,9 +216,9 @@ body {
 }
 /* ─── Toolbar center (search) ───────────────────────────────── */
 .toolbar-center {
-  flex: 1;                  /* fill available space */
-  display: flex;            /* lay children out in a row */
-  align-items: center;      /* center vertically */
+  flex: 1;              /* fill available space */
+  display: flex;              /* lay children out in a row */
+  align-items: center;        /* center vertically */
   gap: 0.5rem;              /* small gap if you ever put anything else here */
 }
 
