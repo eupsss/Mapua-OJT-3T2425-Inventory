@@ -55,11 +55,21 @@ body {
 }
 
 .sidebar .logo {
-  width: 32px;
-  height: 32px;
+  /* --- FIX START --- */
+  /* Increase the size to make the logo visible. Adjust these values as needed */
+  /* The original image 'image_fd5221.png' suggests a wider logo that includes text */
+  width: 180px; /* Example: Increased width */
+  height: auto; /* Maintain aspect ratio */
+  /* If the logo image itself *only* contains the Mapua 'M' icon, and 'Mapúa IMS' is the h1,
+     then you might want a smaller square size for the logo image itself, e.g., 50px */
+  /* If 'image_fd5221.png' is your target appearance, 150px or more might be needed for width */
+  /* --- FIX END --- */
 }
 
 .sidebar .brand h1 {
+  /* If the H1 is for "Mapúa IMS" *next to* the logo image (like in image_fd5221.png), */
+  /* then remove or adjust this h1 if the logo image itself contains "Mapúa IMS". */
+  /* If the logo image is just the 'M' icon, then this h1 is correct. */
   font-size: 1.3rem;
   color: #fff;
   font-weight: 700;
