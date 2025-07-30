@@ -228,9 +228,9 @@
         'PowerSupply','Other'
       ) NOT NULL DEFAULT 'Other',
     `ItemDetails`  VARCHAR(100) NULL,
-    `BorrowedAt`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `BorrowedAt`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Time the borrow request was created',
     `DueAt`        DATETIME     NULL,
-    `ReturnedAt`   DATETIME     NULL,
+    `ReturnedAt`   DATETIME     NULL COMMENT 'Time item was returned',
     `Status`       ENUM('Borrowed','Returned','Overdue')
                     NOT NULL DEFAULT 'Borrowed',
     FOREIGN KEY (`StudentNo`) REFERENCES `Students`(`StudentNo`)
