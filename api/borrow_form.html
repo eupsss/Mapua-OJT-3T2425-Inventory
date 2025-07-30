@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Borrow Item</title>
+</head>
+<body>
+  <h2>Borrow Item Form</h2>
+  <form id="borrowForm">
+    <label>Student Number:</label><br>
+    <input type="text" name="studentNo" required><br><br>
+
+    <label>Item Category:</label><br>
+    <select name="itemCategory" required>
+      <option value="">-- Select Category --</option>
+      <option value="RJ45">RJ45</option>
+      <option value="Serial Cable">Serial Cable</option>
+      <option value="Keyboard">Keyboard</option>
+      <option value="Mouse">Mouse</option>
+      <option value="PowerSupply">Power Supply</option>
+      <option value="Other">Other</option>
+    </select><br><br>
+
+    <label>Item Details:</label><br>
+    <input type="text" name="itemDetails"><br><br>
+
+    <label>Due Date:</label><br>
+    <input type="datetime-local" name="dueAt"><br><br>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <p id="responseMsg"></p>
+
+  <script>
+    const form = document.getElementById('borrowForm');
+    const msg = document.getElementById('responseMsg');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+
+      const response = await fetch('api/borrow.php', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+      msg.textContent = result.message;
+      msg.style.color = result.success ? 'green' : 'red';
+    });
+  </script>
+</body>
+</html>
