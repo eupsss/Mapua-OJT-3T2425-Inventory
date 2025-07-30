@@ -23,12 +23,7 @@
         <li class="active"><a href="assets.html"><span class="icon">💻</span><span class="label">Assets</span></a></li>
         <li><a href="reports.html"><span class="icon">📑</span><span class="label">Reports</span></a></li>
         <li><a href="settings.html"><span class="icon">⚙️</span><span class="label">Settings</span></a></li>
-                <li>
-          <a href="users.html">
-            <span class="icon">🧑</span>
-            <span class="label">Users</span>
-          </a>
-        </li>
+        <li><a href="users.html"><span class="icon">🧑</span><span class="label">Users</span></a></li>
       </ul>
     </nav>
     <div class="sidebar-footer">
@@ -36,6 +31,14 @@
       <button id="signout-btn">🔒 Sign Out</button>
     </div>
   </aside>
+
+  <!-- RFID Scanner Input Field (invisible) -->
+  <input
+    type="text"
+    id="rfidInput"
+    autocomplete="off"
+    style="opacity:0; position:absolute; top:0; left:0; z-index:-1"
+  />
 
   <div class="main-content">
     <header class="header">
@@ -76,39 +79,39 @@
       <form id="editForm" class="fix-form">
         <div class="form-group">
           <label for="efRoom">Room ID</label>
-          <input id="efRoom" name="RoomID" required readonly>
+          <input id="efRoom" name="RoomID" required readonly />
         </div>
         <div class="form-group">
           <label for="efPC">PC Number (00-40)</label>
-          <input id="efPC" name="PCNumber" required maxlength="2" readonly>
+          <input id="efPC" name="PCNumber" required maxlength="2" readonly />
         </div>
         <div class="form-group">
           <label for="efInstalled">Installed At</label>
-          <input type="date" id="efInstalled" name="InstalledAt" required>
+          <input type="date" id="efInstalled" name="InstalledAt" required />
         </div>
         <div class="form-group">
           <label for="efMake">Make / Model</label>
-          <input id="efMake" name="MakeModel" required>
+          <input id="efMake" name="MakeModel" required />
         </div>
         <div class="form-group">
           <label for="efSerial">Serial #</label>
-          <input id="efSerial" name="SerialNumber" required>
+          <input id="efSerial" name="SerialNumber" required />
         </div>
         <div class="form-group">
           <label for="efCPU">CPU</label>
-          <input id="efCPU" name="CPU">
+          <input id="efCPU" name="CPU" />
         </div>
         <div class="form-group">
           <label for="efGPU">GPU</label>
-          <input id="efGPU" name="GPU">
+          <input id="efGPU" name="GPU" />
         </div>
         <div class="form-group">
           <label for="efRAM">RAM (GB)</label>
-          <input id="efRAM" name="RAM_GB" type="number" min="1">
+          <input id="efRAM" name="RAM_GB" type="number" min="1" />
         </div>
         <div class="form-group">
           <label for="efStorage">Storage (GB)</label>
-          <input id="efStorage" name="Storage_GB" type="number" min="1">
+          <input id="efStorage" name="Storage_GB" type="number" min="1" />
         </div>
         <div class="modal-buttons">
           <button type="button" id="editCancel" class="btn-light">Cancel</button>
@@ -117,5 +120,24 @@
       </form>
     </div>
   </div>
+
+  <!-- RFID Scanner Logic -->
+  <script>
+    const rfidInput = document.getElementById('rfidInput');
+    window.onload = () => {
+      rfidInput.focus();
+    };
+
+    document.addEventListener('click', () => {
+      rfidInput.focus();
+    });
+
+    rfidInput.addEventListener('input', (e) => {
+      const scannedTag = e.target.value.trim();
+      console.log('RFID scanned:', scannedTag);
+      alert(`RFID Tag Scanned: ${scannedTag}`);
+      rfidInput.value = '';
+    });
+  </script>
 </body>
 </html>
