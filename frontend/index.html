@@ -5,149 +5,148 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mapúa Inventory Dashboard</title>
 
-  <!-- Styles -->
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <!-- Dashboard logic -->
   <script src="script.js" defer></script>
-  <!-- Export SQL logic -->
   <script src="export-sql.js" defer></script>
 </head>
-
 <body>
-  <!-- floating clock -->
-  <div id="floating-time" class="floating-time">00:00:00</div>
 
-  <!-- side-bar -->
   <aside class="sidebar">
-    <!-- Profile header -->
-    <div class="sidebar-profile">
-      <div class="avatar"></div>
-      <div class="user-name"></div>
+    <div class="brand">
+      <img src="icons/Mapualogo.png" alt="Mapua Logo" class="logo">
     </div>
 
-    <!-- Navigation -->
+    <div class="sidebar-profile">
+      <div class="avatar">MP</div>
+      <span class="user-name">Hi, User!</span>
+    </div>
+
     <nav class="sidebar-nav">
       <ul>
-        <li class="active">
-          <a href="dashboard.html">
-            <span class="icon">📊</span>
-            <span class="label">Dashboard</span>
-          </a>
+        <li class="active"> <a href="index.html"> <span class="icon">📊</span> <span class="label">Dashboard</span></a>
         </li>
         <li>
-          <a href="rooms.html">
-            <span class="icon">🏠</span>
-            <span class="label">Rooms</span>
-          </a>
+          <a href="rfid.html"> <span class="icon">🏷️</span> <span class="label">RFID</span></a>
         </li>
         <li>
-          <a href="assets.html">
-            <span class="icon">💻</span>
-            <span class="label">Assets</span>
-          </a>
+          <a href="rooms.html"> <span class="icon">🏠</span> <span class="label">Rooms</span></a>
         </li>
         <li>
-          <a href="reports.html">
-            <span class="icon">📑</span>
-            <span class="label">Reports</span>
-          </a>
+          <a href="assets.html"> <span class="icon">💻</span> <span class="label">Assets</span></a>
         </li>
         <li>
-          <a href="settings.html">
-            <span class="icon">⚙️</span>
-            <span class="label">Settings</span>
-          </a>
+          <a href="reports.html"> <span class="icon">📈</span> <span class="label">Reports</span></a>
         </li>
         <li>
-          <a href="users.html">
-            <span class="icon">🧑</span>
-            <span class="label">Users</span>
-          </a>
+          <a href="settings.html"> <span class="icon">⚙️</span> <span class="label">Settings</span></a>
+        </li>
+        <li>
+          <a href="users.html"> <span class="icon">🧑‍💻</span> <span class="label">Users</span></a>
         </li>
       </ul>
     </nav>
 
-    <!-- Footer buttons -->
     <div class="sidebar-footer">
-      <button id="export-pdf-btn" class="export-btn">📄 Export PDF</button>
-      <button id="export-sql-btn">🗄️ Export SQL</button>
-      <button id="signout-btn">🔒 Sign Out</button>
-    </div>
+            <button class="export-btn">📄 Export PDF</button>
+            <button id="export-sql-btn" class="export-btn">🗄️ Export SQL</button>
+            <button id="signout-btn">🔒 Sign Out</button>
   </aside>
 
-  <!-- main -->
   <div class="main-content">
-    <!-- header, filters, cards, charts as before -->
     <header class="header toolbar">
-  <div class="toolbar-left">
-    <h2>Inventory</h2>
-    <span class="badge">v3.0</span>
-  </div>
+      <div class="toolbar-left">
+        <h2>Overview</h2>
+        <span class="badge">v1.0.0</span>
+      </div>
 
-  <div class="toolbar-center">
-    <div class="search-wrap">
-      <input type="text" class="search-input" placeholder="🔍 Search..." />
-    </div>
-  </div>
+      <div class="toolbar-center">
+        <div class="search-wrap">
+          <input type="text" placeholder="Search cards..." class="search-input">
+        </div>
+      </div>
 
-  <div class="toolbar-right">
-    <!-- Filter button + dropdown -->
-    <button class="filter-btn">🔧 Filter</button>
-    <div id="filter-panel" class="filter-panel hidden">
-      <strong>📊 Show charts 📊</strong>
-      <ul>
-        <li><label><input type="checkbox" data-chart="PC Status Breakdown" checked> PC Status Breakdown</label></li>
-        <li><label><input type="checkbox" data-chart="Checks Over Time" checked> Checks Over Time</label></li>
-        <li><label><input type="checkbox" data-chart="Average Time to Fix" checked> Average Time to Fix</label></li>
-        <li><label><input type="checkbox" data-chart="Defects by Room" checked> Defects by Room</label></li>
-        <li><label><input type="checkbox" data-chart="Issues Breakdown" checked> Issues Breakdown</label></li>
-        <li><label><input type="checkbox" data-chart="Fixes Over Time" checked> Fixes Over Time</label></li>
-        <li><label><input type="checkbox" data-chart="Daily Defects Trend" checked> Daily Defects Trend</label></li>
-        <li><label><input type="checkbox" data-chart="Issue Mix by Month" checked> Issue Mix by Month</label></li>
-        <li><label><input type="checkbox" data-chart="Room Uptime Ranking" checked> Room Uptime Ranking</label></li>
-      </ul>
-    </div>
-
-    <!-- avatar circle -->
-    <div class="avatar">MF</div>
-  </div>
-</header>
-
+      <div class="toolbar-right">
+        <button class="filter-btn" id="filter-btn">Filter</button>
+        <div class="avatar">JD</div>
+        <button class="theme-toggle-btn">🌙</button>
+        <div class="notifications">🔔<span class="badge-sm">3</span></div>
+        <button class="menu-toggle-btn">☰</button>
+      </div>
+    </header>
 
     <main>
-      <!-- Month picker -->
-      <section class="filters">
-        <label for="month-picker-toggle" class="picker-label">Select Month:</label>
-        <input type="checkbox" id="month-picker-toggle" hidden />
-        <span id="selected-month-display" class="picker-label"></span>
-        <div id="month-picker" class="month-year-picker"></div>
-        <input type="month" id="month-filter" hidden />
-      </section>
+        <section class="filters">
+            <label class="picker-label" for="month-filter">Data for:</label>
+            <input type="hidden" id="month-filter">
+            <label id="selected-month-display" for="month-picker-toggle">Loading...</label>
+            <input type="checkbox" id="month-picker-toggle" class="hidden">
+            <div id="month-picker" class="month-year-picker"></div>
+        </section>
 
-      <!-- KPI cards -->
-      <section class="cards">
-        <div class="card"><h3>Total PCs</h3><p id="total-pcs">0</p></div>
-        <div class="card"><h3>Working PCs</h3><p id="working-pcs">0</p></div>
-        <div class="card"><h3>Defective PCs</h3><p id="defective-pcs">0</p></div>
-        <div class="card"><h3>Checked This Month</h3><p id="checked-today">0</p></div>
-      </section>
+        <section class="cards">
+            <div class="card">
+                <h3>Total PCs</h3>
+                <p id="total-pcs">0</p>
+            </div>
+            <div class="card">
+                <h3>Working PCs</h3>
+                <p id="working-pcs">0</p>
+            </div>
+            <div class="card">
+                <h3>Defective PCs</h3>
+                <p id="defective-pcs">0</p>
+            </div>
+            <div class="card">
+                <h3>Checked Today</h3>
+                <p id="checked-today">0</p>
+            </div>
+        </section>
 
-      <!-- Charts grid -->
-      <section class="charts">
-        <div class="chart-card"><h4>PC Status Breakdown</h4><canvas id="statusChart"></canvas></div>
-        <div class="chart-card"><h4>Checks Over Time</h4><canvas id="checkChart"></canvas></div>
-        <div class="chart-card"><h4>Average Time to Fix</h4><canvas id="avgFixTimeChart"></canvas></div>
-        <div class="chart-card"><h4>Defects by Room</h4><canvas id="defectsByRoomChart"></canvas></div>
-        <div class="chart-card"><h4>Issues Breakdown</h4><canvas id="issuesBreakdownChart"></canvas></div>
-        <div class="chart-card"><h4>Fixes Over Time</h4><canvas id="fixesOverTimeChart"></canvas></div>
-        <div class="chart-card"><h4>Daily Defects Trend</h4><canvas id="defectsTrendChart"></canvas></div>
-        <div class="chart-card"><h4>Issue Mix by Month</h4><canvas id="issuesOverTimeChart"></canvas></div>
-        <div class="chart-card"><h4>Room Uptime Ranking</h4><canvas id="roomUptimeChart"></canvas></div>
-      </section>
+        <section class="charts">
+            <div class="chart-card">
+                <h4>PC Status Breakdown</h4>
+                <canvas id="statusChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h4>Checks Over Time</h4>
+                <canvas id="checkChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h4>Average Time to Fix</h4>
+                <canvas id="avgFixTimeChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h4>Defects by Room</h4>
+                <canvas id="defectsByRoomChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h4>Issues Breakdown</h4>
+                <canvas id="issuesBreakdownChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h4>Fixes Over Time</h4>
+                <canvas id="fixesOverTimeChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h4>Daily Defects Trend</h4>
+                <canvas id="defectsTrendChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h4>Issue Mix by Month</h4>
+                <canvas id="issuesOverTimeChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h4>Room Uptime Ranking</h4>
+                <canvas id="roomUptimeChart"></canvas>
+            </div>
+        </section>
     </main>
+
   </div>
+
+  <div id="floating-time" class="floating-time"></div>
+
 </body>
 </html>
